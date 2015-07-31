@@ -24,15 +24,15 @@ describe('sql-tools', function(){
             {name: 'items'  , place: 'data'},
         ];
         var obtained=SqlTools.olap.cube(sql,'state',datum_vars);
-        expect(obtained).to.be('WITH "cube_olap" AS (\n SELECT x)\n SELECT * FROM "cube_olap"\n UNION SELECT country, \'=SUM=\', kind, sum(sales), sum(items) FROM "cube_olap" GROUP BY country, state');
+        expect(obtained).to.be('WITH "cube_olap" AS (\n SELECT x)\n SELECT * FROM "cube_olap"\n UNION SELECT \'=SUM=\', country, kind, sum(sales), sum(items) FROM "cube_olap" GROUP BY country, state');
     });
     it('search in specialCases',function(){
         var sql="SELECT sarasa";
         var datum_vars=[
-            {name: 'zone', place: 'left', aggLabel:'*T*'},
+            {name: 'zone'        , place: 'left', aggLabel:'*T*'},
             {name: 'calification', place: 'data', aggExp:'f(cal)'},
-            {name: 'inv', place: 'data', aggExp:'min(inv)'},
-            {name: 'sales', place: 'data'},
+            {name: 'inv'         , place: 'data', aggExp:'min(inv)'},
+            {name: 'sales'       , place: 'data'},
         ];
         var obtained=SqlTools.olap.cube(sql,'zone' ,datum_vars);
         expect(obtained).to.be('WITH "cube_olap" AS (\n SELECT sarasa)\n SELECT * FROM "cube_olap"\n UNION SELECT \'*T*\', f(cal), min(inv), sum(sales) FROM "cube_olap"');
