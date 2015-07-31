@@ -1,12 +1,20 @@
+<!-- multilang from README.md
+
+
+
+
+NO MODIFIQUE ESTE ARCHIVO. FUE GENERADO AUTOMÁTICAMENTE POR multilang.js
+
+
+
+
+-->
 # sql-tools
 olap for sql non-olap engines / and other tools
-<!--multilang v0 en:README.md es:LEEME.md -->
 
-<!--lang:es--]
 
 OLAP y otras herramientas para motores de base de datos SQL que no tienen OLAP
 
-[!--lang:*-->
 
 ![designing](https://img.shields.io/badge/stability-desgining-red.svg)
 [![version](https://img.shields.io/npm/v/sql-tools.svg)](https://npmjs.org/package/sql-tools)
@@ -18,49 +26,22 @@ OLAP y otras herramientas para motores de base de datos SQL que no tienen OLAP
 
 <!--multilang buttons-->
 
-language: ![English](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)
-also available in:
-[![Spanish](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)](LEEME.md)
+idioma: ![castellano](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)
+también disponible en:
+[![inglés](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)](README.md)
 
-<!--lang:en-->
-
-## Install
-
-<!--lang:es--]
 ## Instalación
 
-[!--lang:*-->
 
 ```sh
 $ npm install sql-tools
 ```
 
-<!--lang:en-->
-
-## Main goal
-
-Transfor a SQL sentence in a SQL with totals.
-
-<!--lang:es--]
 
 ## Objetivo principal
 
 Transformar una sentencia SQL en otra que obtenga también los totales agrupando por la variable especificada.
 
-[!--lang:en-->
-
-## Definitions
-
-Uses a list of field definition with the form:
-
-attribute | mandatory | use
-----------|-----------|-------------------------------------
-name      | yes       | name of the field in the database
-place     | yes       | 'data' if must be aggregated, 'left' or 'top' if must apears in the GROUP BY clausule
-aggLabel  | for pivot | the text to put in the total rows
-aggExp    | no        | the expression when is different to SUM(x)
-
-<!--lang:es--]
 
 ## Definición
 
@@ -73,15 +54,9 @@ place     | sí        | 'data' si el campo debe agregarse, 'left' o 'top' si de
 aggLabel  | p/pivote  | el texto que debe ponerse en las filas de datos agregados
 aggExp    | no        | la expresión de totalización cuando no es SUM(x)
 
-[!--lang:en-->
-
-## Example
-
-<!--lang:es--]
 
 ## Ejemplo
 
-[!--lang:*-->
 
 ```js
 var olap = require('sql-tools').olap;
@@ -106,15 +81,9 @@ UNION SELECT '=SUM=', kind, SUM(sales), min(calif)
 */
 ```
 
-<!--lang:en-->
-
-## License
-
-<!--lang:es--]
 
 ## Licencia
 
-[!--lang:*-->
 
 [MIT](LICENSE)
 
