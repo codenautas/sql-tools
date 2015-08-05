@@ -37,4 +37,8 @@ SqlTools.olap.cube=function(sql, pivotVar, varsDef){
     return consulta;
 }
 
+SqlTools.olap.orderBy=function(sql, varsDef){
+    return "not implemented yet";
+}
+
 module.exports=SqlTools;
