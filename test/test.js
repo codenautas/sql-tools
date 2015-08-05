@@ -8,7 +8,7 @@ describe('sql-tools', function(){
     it('do simple task wihtout special cases',function(){
         var sql="SELECT sarasa";
         var datum_vars=[
-            {name: 'zone',  place: 'left', aggLabel:'=TOTAL='},
+            {name: 'zone',  place: 'left'},
             {name: 'sales', place: 'data'},
         ];
         var obtained=SqlTools.olap.cube(sql,'zone',datum_vars);

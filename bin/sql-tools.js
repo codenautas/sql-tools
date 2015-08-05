@@ -2,6 +2,10 @@
 
 var SqlTools={};
 
+SqlTools.defaults={
+    aggLabel: '=TOTAL='
+};
+
 SqlTools.olap={};
 
 SqlTools.olap.cube=function(sql, pivotVar, varsDef){
@@ -18,7 +22,7 @@ SqlTools.olap.cube=function(sql, pivotVar, varsDef){
         if (!places[varDef.place]){
             throw new Error('SqlTools.olap.cube: incorrect place in var definition');
         } else if (varDef.name == pivotVar){
-            expSelect.push('\'' + varDef.aggLabel.replace(/'/g, "''") + '\'');
+            expSelect.push('\'' + (varDef.aggLabel||SqlTools.defaults.aggLabel).replace(/'/g, "''") + '\'');
         } else if (places[varDef.place].groupby) {
             expSelect.push(varDef.name);
             arrGroup.push(varDef.name);
