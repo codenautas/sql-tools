@@ -28,6 +28,7 @@ sql=olap.cube(sql, parametros.var_col1, datum.vars );
 para generar algo como:
 
 ```sql
+with tira_con_totales as (
 with tira as (
    -- dentro
    SELECT pla_sexo ::text, pla_comuna ::text, count(*) as numerador, sum(count(*)) over (partition by pla_sexo) as denominador 
@@ -42,4 +43,4 @@ with tira as (
    from tira
    group by pla_comuna
    order by 1
-```
+``` 
