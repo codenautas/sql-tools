@@ -39,7 +39,7 @@ describe('sql-tools', function(){
             var obtained=SqlTools.olap.cube(sql,'zone' ,datum_vars);
             expect(obtained).to.be("WITH \"cube_olap\" AS (\n SELECT sarasa)\n SELECT * FROM \"cube_olap\"\n UNION SELECT '''TOTAL''', subzone, f(cal), min(inv), sum(sales) FROM \"cube_olap\" GROUP BY subzone");
         });
-        it.skip('add order by clausule',function(){
+        it('add order by clausule',function(){
             var sql="SELECT sarasa";
             var datum_vars=[
                 {name: 'zone'        , place: 'left', aggLabel:"'TOTAL'", aggPositionFirst:true, orderFunction:''},
@@ -57,7 +57,7 @@ describe('sql-tools', function(){
                 " SELECT * from \"unordered\"\n"+
                 " ORDER BY \n"+
                 "  zone='''TOTAL''' DESC, (zone),\n"+
-                "  area='=TOTAL=' DESC, comun.para_ordenar_numeros(area),\n"+
+                "  area='=TOTAL=', comun.para_ordenar_numeros(area),\n"+
                 "  state='SUM', comun.para_ordenar_numeros(state)"
             );
         });

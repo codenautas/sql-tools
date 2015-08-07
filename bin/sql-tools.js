@@ -1,4 +1,4 @@
-﻿"use strict";
+"use strict";
 
 var SqlTools={};
 
@@ -6,24 +6,31 @@ SqlTools.defaults={
     aggLabel: '=TOTAL='
 };
 
-SqlTools.olap={};
-
-SqlTools.olap.cube=function(sql, pivotVar, varsDef){
-    var places={
+SqlTools.places={
         left:{groupby:true},
         top :{groupby:true},
         data:{aggregate:true}
-    }
+};
+
+SqlTools.olap={};
+
+function coalesce(){
+    var i=0;
+    while(i<arguments.length-1 && arguments[i]==null) i++;
+    return arguments[i];
+};
+
+SqlTools.olap.cube=function(sql, pivotVar, varsDef){
     var consulta = 'WITH "cube_olap" AS (\n ' + sql + ')\n SELECT * FROM "cube_olap"\n UNION SELECT ';
     var arrGroup = [];
     var expSelect = [];
     for (var i=0; i < varsDef.length; i++) {
         var varDef=varsDef[i];
-        if (!places[varDef.place]){
+        if (!SqlTools.places[varDef.place]){
             throw new Error('SqlTools.olap.cube: incorrect place in var definition');
         } else if (varDef.name == pivotVar){
-            expSelect.push('\'' + (varDef.aggLabel||SqlTools.defaults.aggLabel).replace(/'/g, "''") + '\'');
-        } else if (places[varDef.place].groupby) {
+            expSelect.push('\'' + coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replace(/'/g, "''") + '\'');
+        } else if (SqlTools.places[varDef.place].groupby) {
             expSelect.push(varDef.name);
             arrGroup.push(varDef.name);
         } else {
@@ -38,7 +45,24 @@ SqlTools.olap.cube=function(sql, pivotVar, varsDef){
 }
 
 SqlTools.olap.orderBy=function(sql, varsDef){
-    return "not implemented yet";
+    var expOrderBy = [];
+    var consulta = "WITH \"unordered\" AS (\n " + sql + ")\n SELECT * from \"unordered\"\n ORDER BY \n  ";
+    for (var i=0; i < varsDef.length; i++) {
+        var varDef=varsDef[i];
+        if (!SqlTools.places[varDef.place]){
+            throw new Error('SqlTools.olap.orderBy: incorrect place in var definition');
+        } else if (!SqlTools.places[varDef.place].aggregate){
+            //console.log("Funcion: " + coalesce(varDef.orderFunction, SqlTools.defaults.orderFunction));
+            var parteOrderBy = varDef.name + "=\'" + 
+                coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replace(/'/g, "''") + "\'"+
+                (coalesce(varDef.aggPositionFirst,false) ? ' DESC, ' : ', ') +
+                coalesce(varDef.orderFunction, SqlTools.defaults.orderFunction) + '(' + varDef.name + ')';
+            expOrderBy.push(parteOrderBy); 
+        }
+    }
+    consulta += expOrderBy.join(',\n  ');
+    return consulta;
+
 }
 
 module.exports=SqlTools;
