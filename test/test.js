@@ -57,7 +57,7 @@ describe('sql-tools', function(){
                 " SELECT * from \"unordered\"\n"+
                 " ORDER BY \n"+
                 "  zone='''TOTAL''' DESC, (zone),\n"+
-                "  area='=TOTAL=', comun.para_ordenar_numeros(area),\n"+
+                "  area='=TOTAL=' DESC, comun.para_ordenar_numeros(area),\n"+
                 "  state='SUM', comun.para_ordenar_numeros(state)"
             );
         });

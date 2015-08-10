@@ -55,7 +55,7 @@ SqlTools.olap.orderBy=function(sql, varsDef){
             //console.log("Funcion: " + coalesce(varDef.orderFunction, SqlTools.defaults.orderFunction));
             var parteOrderBy = varDef.name + "=\'" + 
                 coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replace(/'/g, "''") + "\'"+
-                (coalesce(varDef.aggPositionFirst,false) ? ' DESC, ' : ', ') +
+                (coalesce(varDef.aggPositionFirst, SqlTools.defaults.aggPositionFirst) ? ' DESC, ' : ', ') +
                 coalesce(varDef.orderFunction, SqlTools.defaults.orderFunction) + '(' + varDef.name + ')';
             expOrderBy.push(parteOrderBy); 
         }
