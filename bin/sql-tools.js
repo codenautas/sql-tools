@@ -31,13 +31,15 @@ SqlTools.olap.cube=function(sql, pivotVar, varsDef){
         } else if (varDef.name == pivotVar){
             expSelect.push('\'' + coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replace(/'/g, "''") + '\'');
         } else if (SqlTools.places[varDef.place].groupby) {
-            expSelect.push(varDef.name);
+            expSelect.push(varDef.name+'::text');
             arrGroup.push(varDef.name);
         } else {
             expSelect.push(varDef.aggExp ? varDef.aggExp : 'sum('+ varDef.name +')'); 
         }
     }
-    consulta += varsDef.map(function(info){ return info.name+(info.place==='data'?'':'::text'); }).join(', ');
+    consulta += varsDef.map(function(varDef){ 
+        return varDef.name+(SqlTools.places[varDef.place].groupby?'::text':''); 
+    }).join(', ');
     consulta += ' FROM "cube_olap"\n UNION SELECT ';
     consulta += expSelect.join(', ')+' FROM "cube_olap"';
     if (arrGroup.length>0){

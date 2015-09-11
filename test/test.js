@@ -25,7 +25,7 @@ describe('sql-tools', function(){
                 {name: 'items'  , place: 'data'},
             ];
             var obtained=SqlTools.olap.cube(sql,'state',datum_vars);
-            expect(obtained).to.be('WITH "cube_olap" AS (\n SELECT x)\n SELECT country::text, state::text, kind::text, sales, items FROM "cube_olap"\n UNION SELECT country, \'=SUM=\', kind, sum(sales), sum(items) FROM "cube_olap" GROUP BY country, kind');
+            expect(obtained).to.be('WITH "cube_olap" AS (\n SELECT x)\n SELECT country::text, state::text, kind::text, sales, items FROM "cube_olap"\n UNION SELECT country::text, \'=SUM=\', kind::text, sum(sales), sum(items) FROM "cube_olap" GROUP BY country, kind');
         });
         it('search in specialCases',function(){
             var sql="SELECT sarasa";
@@ -37,7 +37,7 @@ describe('sql-tools', function(){
                 {name: 'sales'       , place: 'data'},
             ];
             var obtained=SqlTools.olap.cube(sql,'zone' ,datum_vars);
-            expect(obtained).to.be("WITH \"cube_olap\" AS (\n SELECT sarasa)\n SELECT zone::text, subzone::text, calification, inv, sales FROM \"cube_olap\"\n UNION SELECT '''TOTAL''', subzone, f(cal), min(inv), sum(sales) FROM \"cube_olap\" GROUP BY subzone");
+            expect(obtained).to.be("WITH \"cube_olap\" AS (\n SELECT sarasa)\n SELECT zone::text, subzone::text, calification, inv, sales FROM \"cube_olap\"\n UNION SELECT '''TOTAL''', subzone::text, f(cal), min(inv), sum(sales) FROM \"cube_olap\" GROUP BY subzone");
         });
         it('add order by clausule',function(){
             var sql="SELECT sarasa";
