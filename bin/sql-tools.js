@@ -21,7 +21,7 @@ function coalesce(){
 };
 
 SqlTools.olap.cube=function(sql, pivotVar, varsDef){
-    var consulta = 'WITH "cube_olap" AS (\n ' + sql + ')\n SELECT * FROM "cube_olap"\n UNION SELECT ';
+    var consulta = 'WITH "cube_olap" AS (\n ' + sql + ')\n SELECT ';
     var arrGroup = [];
     var expSelect = [];
     for (var i=0; i < varsDef.length; i++) {
@@ -37,6 +37,8 @@ SqlTools.olap.cube=function(sql, pivotVar, varsDef){
             expSelect.push(varDef.aggExp ? varDef.aggExp : 'sum('+ varDef.name +')'); 
         }
     }
+    consulta += varsDef.map(function(info){ return info.name+(info.place==='data'?'':'::text'); }).join(', ');
+    consulta += ' FROM "cube_olap"\n UNION SELECT ';
     consulta += expSelect.join(', ')+' FROM "cube_olap"';
     if (arrGroup.length>0){
        consulta += ' GROUP BY ' + arrGroup.join(", ");
