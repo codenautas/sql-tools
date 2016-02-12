@@ -56,8 +56,8 @@ Uses a list of field definition with the form:
 attribute | mandatory | use
 ----------|-----------|-------------------------------------
 name      | yes       | name of the field in the database
-place     | yes       | 'data' if must be aggregated, 'left' or 'top' if must apears in the GROUP BY clausule
-aggLabel  | for pivot | the text to put in the total rows
+place     | yes       | 'data' if must be added, 'left' or 'top' if it must apear in the GROUP BY clausule
+aggLabel  | for pivot | text to insert in the added rows
 aggExp    | no        | the expression when is different to SUM(x)
 
 <!--lang:es--]
