@@ -69,4 +69,20 @@ SqlTools.olap.orderBy=function(sql, varsDef){
 
 }
 
+SqlTools.structuredData={};
+
+SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData){
+    return {
+        text: "select 77+$1",
+        values: [1]
+    }
+}
+
+SqlTools.structuredData.sqlWrite = function sqlWrite(pk, structuredData){
+    return {
+        text: "select 77+$1",
+        values: [1]
+    }
+}
+
 module.exports=SqlTools;

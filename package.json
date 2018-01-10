@@ -5,25 +5,26 @@
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/sql-tools",
-  "contributors": [{
-    "name": "Emilio Platzer", "email": "emilioplatzer@gmail.com"
-  }],
+  "contributors": [
+    {
+      "name": "Emilio Platzer",
+      "email": "emilioplatzer@gmail.com"
+    }
+  ],
   "main": "bin/sql-tools.js",
-  "dependencies": {
-    "lodash": ">=3.10.0"
-    
-  },
+  "dependencies": {},
   "devDependencies": {
     "expect.js": "~0.3.1",
-    "istanbul": "~0.3.17",
-    "mocha": "~2.2.5"
-    
+    "istanbul": "~0.4.5",
+    "mocha": "~4.1.0",
+    "mini-tools": "~0.3.22",
+    "pg-promise-strict": "~0.4.4"
   },
   "engines": {
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test": "mocha --reporter spec --bail --check-leaks --globals json4allRegisteredTypes test/",
     "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "start": "node example/server.js"

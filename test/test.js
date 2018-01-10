@@ -4,8 +4,13 @@ var expect = require('expect.js');
 
 var SqlTools = require('../bin/sql-tools.js');
 
+var pg = require('pg-promise-strict');
+
+var MiniTools = require('mini-tools');
+
 describe('sql-tools', function(){
-    describe('olap.cube',function(){
+  describe('olap',function(){
+    describe('cube',function(){
         it('do simple task wihtout special cases',function(){
             var sql="SELECT sarasa";
             var datum_vars=[
@@ -62,7 +67,7 @@ describe('sql-tools', function(){
             );
         });
     });
-    describe('olap.orderBy',function(){
+    describe('orderBy',function(){
         it('must check correct place',function(){
             var sql="SELECT sarasa";
             var datum_vars=[
@@ -76,4 +81,85 @@ describe('sql-tools', function(){
             }
         });
     });
+  });
+  describe('structuredData', function(){
+    var connectParams = {
+        user: 'test_user',
+        password: 'test_pass',
+        database: 'test_db',
+        host: 'localhost',
+        port: 5432
+    }
+    var client;
+    var poolLog;
+    var struct_albums={
+        mainTable:{
+            pkFields:['id'],
+            tableName:'albums',
+            childTables:[{
+                pkFields:['album_id', 'song_num'],
+                fkFields:[{target:'id', source:'album_id'}],
+                tableName:'songs',
+                childTables:[],
+            }]
+        }
+    }
+    before(function(){
+        pg.setAllTypes();
+        pg.easy=true;
+        return MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+            return pg.connect(config.db);
+        }).then(function(returnedClient){
+            // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
+            pg.easy=false;
+            client = returnedClient;
+            return client.executeSqlScript('install/structured-data.sql');
+        });
+    });
+    after(function(){
+        client.done();
+        setTimeout(function(){
+            process.exit();
+        },1000);
+    });
+    describe('sqlRead', function(){
+        it("reads one album", function(){
+            return client.query(SqlTools.structuredData.sqlRead({id:1}, struct_albums)).fetchUniqueValue().then(function(result){
+                expect(result.value).to.eql({
+                    id:1,
+                    title:'Down in the Groove',
+                    year:1988,
+                    songs:[
+                        {song_num:1, song_name:"Let's Stick Together"},
+                        {song_num:2, song_name:"When Did You Leave Heaven?"},
+                    ]
+                })
+            });
+        });
+    });
+    describe('sqlWrite', function(){
+        it("delete 1fs, update 2nd, insert 3er", function(){
+            var data={
+                id:1,
+                title:'Down in the Groove',
+                year:1989,
+                songs:[
+                    {song_num:2, song_name:"When Did You Leave Heaven?", "length": "2:15"},
+                    {song_num:3, song_name:"Sally Sue Brown"}, 
+                ]
+            }
+            return client.query(SqlTools.structuredData.sqlWrite({id:1}, struct_albums, data)).execute().then(function(result){
+                return client.query("select * from songs where album_id=$1 and song_num=$2",1,1).fetchRowIfExists();
+            }).then(function(result){
+                expect(result.rowCount).to.eql(0);
+                return client.query("select * from songs where album_id=$1 and song_num=$2",1,2).fetchUniqueRow();
+            }).then(function(result){
+                expect(result.row.length).to.eql("2:15");
+                return client.query("select * from songs where album_id=$1 and song_num=$2",1,3).fetchUniqueRow();
+            }).then(function(result){
+                expect(result.row).to.eql({song_num:3, song_name:"Sally Sue Brown", length:null});
+            });
+        });
+    });
+  });
 });
