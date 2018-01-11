@@ -69,12 +69,39 @@ SqlTools.olap.orderBy=function(sql, varsDef){
 
 }
 
+SqlTools.quoteIdent = function(dbObjectName){
+    return '"'+dbObjectName.replace(/"/g,'""')+'"';
+}
+
 SqlTools.structuredData={};
 
-SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData){
+SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInfo, inheritedKeys){
+    if(!globalInfo){
+        globalInfo={parameterCount:0, aliasCount:{}, parameterValues:[]};
+    }
+    if(!inheritedKeys){
+        inheritedKeys=[];
+    }
+    var alias=structuredData.tableName+(globalInfo.aliasCount[structuredData.tableName]||'');
+    globalInfo.aliasCount[structuredData.tableName]=(globalInfo.aliasCount[structuredData.tableName]||0)+1;
+    var q_alias=SqlTools.quoteIdent(alias);
+    var q_table=SqlTools.quoteIdent(structuredData.tableName);
+    var pk_var_eq_param=structuredData.pkFields.map(function(fieldDef){
+        globalInfo.parameterValues.push(pk[fieldDef.fieldName]);
+        return q_alias+'.'+SqlTools.quoteIdent(fieldDef.fieldName)+' = $'+globalInfo.parameterValues.length;
+    })
+    /*
+   || jsonb_build_object('songs',(select jsonb_agg(to_jsonb(s.*))
+         from ${q_table} s
+         where a.id = s.album_id))
+    */
     return {
-        text: "select 77+$1",
-        values: [1]
+        text: `
+select to_jsonb(${q_alias}.*) 
+  from ${structuredData.tableName} as ${q_alias}
+  where ${pk_var_eq_param};
+  `,
+        values: globalInfo.parameterValues
     }
 }
 
