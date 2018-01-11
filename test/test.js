@@ -127,25 +127,25 @@ describe('sql-tools', function(){
     });
     describe('sqlRead', function(){
         it("reads one album without inner data", function(){
-            return client.query(SqlTools.structuredData.sqlRead({id:1}, struct_albums)).fetchUniqueValue().then(function(result){
-                expect(result.value).to.eql({
+            return client.query(SqlTools.structuredData.sqlRead({id:1}, unique_struct_albums)).fetchUniqueValue().then(function(result){
+                expect(result.value).to.eql([{
                     id:1,
                     title:'Down in the Groove',
                     year:1988,
-                })
+                }])
             });
         });
         it("reads one album", function(){
             return client.query(SqlTools.structuredData.sqlRead({id:1}, struct_albums)).fetchUniqueValue().then(function(result){
-                expect(result.value).to.eql({
+                expect(result.value).to.eql([{
                     id:1,
                     title:'Down in the Groove',
                     year:1988,
                     songs:[
-                        {song_num:1, song_name:"Let's Stick Together"},
-                        {song_num:2, song_name:"When Did You Leave Heaven?"},
+                        {song_num:1, length:null, song_name:"Let's Stick Together"},
+                        {song_num:2, length:null, song_name:"When Did You Leave Heaven?"},
                     ]
-                })
+                }])
             });
         });
     });

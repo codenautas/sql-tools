@@ -73,34 +73,48 @@ SqlTools.quoteIdent = function(dbObjectName){
     return '"'+dbObjectName.replace(/"/g,'""')+'"';
 }
 
+SqlTools.quoteLiteral = function(dbAnyValue){
+    return "'"+dbAnyValue.replace(/'/g,"''")+"'";
+}
+
 SqlTools.structuredData={};
 
-SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInfo, inheritedKeys){
+SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInfo, inheritedKeys, parentStructure){
+    var outer=!globalInfo;
     if(!globalInfo){
-        globalInfo={parameterCount:0, aliasCount:{}, parameterValues:[]};
+        globalInfo={parameterCount:0, parameterValues:[]};
     }
     if(!inheritedKeys){
         inheritedKeys=[];
     }
-    var alias=structuredData.tableName+(globalInfo.aliasCount[structuredData.tableName]||'');
-    globalInfo.aliasCount[structuredData.tableName]=(globalInfo.aliasCount[structuredData.tableName]||0)+1;
-    var q_alias=SqlTools.quoteIdent(alias);
+    var q_alias=SqlTools.quoteIdent(structuredData.alias||structuredData.tableName);
     var q_table=SqlTools.quoteIdent(structuredData.tableName);
-    var pk_var_eq_param=structuredData.pkFields.map(function(fieldDef){
-        globalInfo.parameterValues.push(pk[fieldDef.fieldName]);
-        return q_alias+'.'+SqlTools.quoteIdent(fieldDef.fieldName)+' = $'+globalInfo.parameterValues.length;
-    })
-    /*
-   || jsonb_build_object('songs',(select jsonb_agg(to_jsonb(s.*))
-         from ${q_table} s
-         where a.id = s.album_id))
-    */
+    var where_expr;
+    var skipColumns=[];
+    if(outer){
+        where_expr=structuredData.pkFields.map(function(fieldDef){
+            globalInfo.parameterValues.push(pk[fieldDef.fieldName]);
+            return q_alias+'.'+SqlTools.quoteIdent(fieldDef.fieldName)+' = $'+globalInfo.parameterValues.length;
+        }).join(' and ');
+    }else{
+        where_expr=inheritedKeys.map(function(pairDef){
+            skipColumns.push(' - '+SqlTools.quoteLiteral(pairDef.source));
+            var parent_q_alias = SqlTools.quoteIdent(parentStructure.alias||parentStructure.tableName);
+            return q_alias+'.'+SqlTools.quoteIdent(pairDef.source)+' = '+parent_q_alias+'.'+SqlTools.quoteIdent(pairDef.target);
+        }).join(' and ');
+    }
+    var subQueries=structuredData.childTables.map(function(childTable){
+        var query = SqlTools.structuredData.sqlRead({}, childTable, globalInfo, inheritedKeys.concat(childTable.fkFields), structuredData)
+        return `
+    || jsonb_build_object('songs',(${query.text}))
+`;
+    }).join('');
     return {
         text: `
-select to_jsonb(${q_alias}.*) 
+select jsonb_agg(to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQueries})
   from ${structuredData.tableName} as ${q_alias}
-  where ${pk_var_eq_param};
-  `,
+  where ${where_expr}
+`,
         values: globalInfo.parameterValues
     }
 }
