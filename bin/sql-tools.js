@@ -120,7 +120,9 @@ select coalesce(jsonb_agg(to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQu
 }
 
 SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData){
-    
+    return {
+        text: ``
+    }
 }
 
 SqlTools.structuredData.sqlsWrite = function sqlWrite(pk, structuredData){
