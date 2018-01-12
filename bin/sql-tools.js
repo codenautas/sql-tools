@@ -104,14 +104,14 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInf
         }).join(' and ');
     }
     var subQueries=structuredData.childTables.map(function(childTable){
-        var query = SqlTools.structuredData.sqlRead({}, childTable, globalInfo, inheritedKeys.concat(childTable.fkFields), structuredData)
+        var query = SqlTools.structuredData.sqlRead({}, childTable, globalInfo, /*inheritedKeys.concat*/(childTable.fkFields), structuredData)
         return `
-    || jsonb_build_object('songs',(${query.text}))
+    || jsonb_build_object('${childTable.tableName}',(${query.text}))
 `;
     }).join('');
     return {
         text: `
-select jsonb_agg(to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQueries})
+select coalesce(jsonb_agg(to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQueries}),'[]'::jsonb)
   from ${structuredData.tableName} as ${q_alias}
   where ${where_expr}
 `,
@@ -119,11 +119,16 @@ select jsonb_agg(to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQueries})
     }
 }
 
-SqlTools.structuredData.sqlWrite = function sqlWrite(pk, structuredData){
-    return {
-        text: "select 77+$1",
-        values: [1]
-    }
+SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData){
+    
+}
+
+SqlTools.structuredData.sqlsWrite = function sqlWrite(pk, structuredData){
+    return SqlTools.structuredData.sqlsDeletes(pk, structuredData).concat(
+        SqlTools.structuredData.sqlsUpdates(pk, structuredData)
+    ).concat(
+        SqlTools.structuredData.sqlsInserts(pk, structuredData)
+    );
 }
 
 module.exports=SqlTools;
