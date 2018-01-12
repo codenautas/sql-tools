@@ -1,3 +1,5 @@
+--join con PK DEL PADRE
+
 drop schema if exists sd cascade; 
 create schema sd; 
 set search_path = sd;
@@ -39,18 +41,19 @@ insert into artists
   values (1, 'Bob', 'Dylan'),
          (2, 'Paul', 'McCartney');
 
-insert into genres
-  values ('rock', 'Rock'),
-         ('blues', 'Blues');
-         
 insert into record_labels
-  values ('sonymusic', 'Sony Music'),
+  values ('sony', 'Sony Music'),
          ('emi', 'EMI'),
          ('wb', 'Warner Bros');
 
+insert into genres
+  values ('rock', 'Rock'),
+         ('blues', 'Blues');
+
 insert into albums
-  values (1, 1, 'Down in the Groove', 1988, 'sonymusic');
+  values (1, 1, 'Down in the Groove', 1988, 'sony');
   
 insert into songs
   values (1, 1, 'Let''s Stick Together', null, 'rock'),
          (1, 2, 'When Did You Leave Heaven?', null, 'blues');
+

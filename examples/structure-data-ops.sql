@@ -1,7 +1,7 @@
 ﻿set search_path = sd;
-
-select to_jsonb(a.*) 
-   || jsonb_build_object('songs',(select jsonb_agg(to_jsonb(s.*))
+select
+ to_jsonb(a.*) 
+   || jsonb_build_object('songs',(select jsonb_agg(to_jsonb(s.*) - 'album_id')
          from songs s
          where a.id = s.album_id))
   from albums a

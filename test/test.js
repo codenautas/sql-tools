@@ -92,18 +92,42 @@ describe('sql-tools', function(){
     }
     var client;
     var poolLog;
+    var struct_songs={
+        tableName:'songs',
+        primaryKey:['album_id', 'song_num'],
+        foreignKeys:[
+            {references:'albums', objectName:'album', fields:[{target:'id', source:'album_id'}]},
+            {references:'genres', objectName:'genre', fields:[{target:'genre', source:'genre'}]}
+        ],
+        childrenTables:[],
+    };
     var struct_albums={
-        mainTable:{
-            pkFields:['id'],
-            tableName:'albums',
-            childTables:[{
-                pkFields:['album_id', 'song_num'],
-                fkFields:[{target:'id', source:'album_id'}],
-                tableName:'songs',
-                childTables:[],
-            }]
-        }
-    }
+        tableName:'albums',
+        primaryKey:['id'],
+        foreignKeys:[
+            {references:'record_labels', objectName: 'record_label', fields:[{target:'record_label', source:'record_label'}]},
+            {references:'artists', objectName: 'artist', fields:[{target:'id', source:'artist_id'}]}
+        ],
+        childrenTables:[
+            struct_songs
+        ]
+    };
+    var struct_artists={
+        tableName:'artists',
+        primaryKey:['id'],
+        foreignKeys:[],
+        childrenTables:[
+            struct_albums
+        ]
+    };
+    var struct_record_labels={
+        tableName:'record_labels',
+        primaryKey:['record_label'],
+        foreignKeys:[],
+        childrenTables:[
+            struct_albums
+        ]
+    };
     before(function(){
         pg.setAllTypes();
         pg.easy=true;
@@ -123,22 +147,70 @@ describe('sql-tools', function(){
         },1000);
     });
     describe('sqlRead', function(){
-        it("reads one album", function(){
+        /*it("reads one album", function(){
             return client.query(SqlTools.structuredData.sqlRead({id:1}, struct_albums)).fetchUniqueValue().then(function(result){
                 expect(result.value).to.eql({
                     id:1,
                     title:'Down in the Groove',
                     year:1988,
-                    songs:[
-                        {song_num:1, song_name:"Let's Stick Together"},
-                        {song_num:2, song_name:"When Did You Leave Heaven?"},
-                    ]
+                    record_label: {record_label: 'sonymusic', name: 'Sony Music'},
+                    artist: {id: 1, name: 'Bob', lastname: 'Dylan'},
+                    songs:[{
+                        song_num:1, 
+                        song_name:"Let's Stick Together",
+                        length: null, 
+                        genre: {
+                            genre: 'rock',
+                            name: 'Rock'
+                        }
+                    },
+                    {
+                        song_num:2, 
+                        song_name: "When Did You Leave Heaven?", 
+                        length: null, 
+                        genre: {
+                            genre: 'blues',
+                            name: 'Blues'
+                        }
+                    }]
+                })
+            });
+        });*/
+        it("reads one record label", function(){
+            return client.query(SqlTools.structuredData.sqlRead({record_label:'\'sonymusic\''}, struct_record_labels)).fetchUniqueValue().then(function(result){
+                expect(result.value).to.eql({
+                    record_label: 'sonymusic', 
+                    name: 'Sony Music',
+                    albums: [{
+                        id:1,
+                        title:'Down in the Groove',
+                        year:1988,
+                        artist: {id: 1, name: 'Bob', lastname: 'Dylan'},
+                        songs:[{
+                            song_num:1, 
+                            song_name:"Let's Stick Together",
+                            length: null, 
+                            genre: {
+                                genre: 'rock',
+                                name: 'Rock'
+                            }
+                        },
+                        {
+                            song_num:2, 
+                            song_name: "When Did You Leave Heaven?", 
+                            length: null, 
+                            genre: {
+                                genre: 'blues',
+                                name: 'Blues'
+                            }
+                        }]
+                    }]
                 })
             });
         });
     });
     describe('sqlWrite', function(){
-        it("delete 1fs, update 2nd, insert 3er", function(){
+        it("delete 1st, update 2nd, insert 3rd, change year", function(){
             var data={
                 id:1,
                 title:'Down in the Groove',
