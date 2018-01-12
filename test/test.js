@@ -96,7 +96,7 @@ describe('sql-tools', function(){
         tableName:'songs',
         primaryKey:['album_id', 'song_num'],
         foreignKeys:[
-            {references:'albums', objectName:'album', fields:[{target:'id', source:'album_id'}]},
+            {references:'albums',objectName:'album', fields:[{target:'id', source:'album_id'}]},
             {references:'genres', objectName:'genre', fields:[{target:'genre', source:'genre'}]}
         ],
         childrenTables:[],
@@ -128,6 +128,7 @@ describe('sql-tools', function(){
             struct_albums
         ]
     };
+    var completeStructure = [struct_artists, struct_record_labels];
     before(function(){
         pg.setAllTypes();
         pg.easy=true;
@@ -147,35 +148,42 @@ describe('sql-tools', function(){
         },1000);
     });
     describe('sqlRead', function(){
-        /*it("reads one album", function(){
+        it("reads one song", function(){
+            return client.query(SqlTools.structuredData.sqlRead({album_id:1, song_num:1}, struct_songs)).fetchUniqueValue().then(function(result){
+                expect(result.value).to.eql({
+                    song_num:1, 
+                    song_name:"Let's Stick Together",
+                    length: null, 
+                    genre: 'rock',
+                    album_id:1,
+                })
+            });
+        });
+        it("reads one album", function(){
             return client.query(SqlTools.structuredData.sqlRead({id:1}, struct_albums)).fetchUniqueValue().then(function(result){
                 expect(result.value).to.eql({
                     id:1,
                     title:'Down in the Groove',
                     year:1988,
-                    record_label: {record_label: 'sonymusic', name: 'Sony Music'},
-                    artist: {id: 1, name: 'Bob', lastname: 'Dylan'},
+                    record_label: 'sonymusic',
+                    artist_id: 1,
                     songs:[{
+                        album_id: 1,
                         song_num:1, 
                         song_name:"Let's Stick Together",
                         length: null, 
-                        genre: {
-                            genre: 'rock',
-                            name: 'Rock'
-                        }
+                        genre: 'rock',
                     },
                     {
+                        album_id: 1,
                         song_num:2, 
                         song_name: "When Did You Leave Heaven?", 
                         length: null, 
-                        genre: {
-                            genre: 'blues',
-                            name: 'Blues'
-                        }
+                        genre: 'blues',
                     }]
                 })
             });
-        });*/
+        });
         it("reads one record label", function(){
             return client.query(SqlTools.structuredData.sqlRead({record_label:'\'sonymusic\''}, struct_record_labels)).fetchUniqueValue().then(function(result){
                 expect(result.value).to.eql({
@@ -185,24 +193,21 @@ describe('sql-tools', function(){
                         id:1,
                         title:'Down in the Groove',
                         year:1988,
-                        artist: {id: 1, name: 'Bob', lastname: 'Dylan'},
+                        record_label: 'sonymusic',
+                        artist_id: 1,
                         songs:[{
+                            album_id: 1,
                             song_num:1, 
                             song_name:"Let's Stick Together",
                             length: null, 
-                            genre: {
-                                genre: 'rock',
-                                name: 'Rock'
-                            }
+                            genre: 'rock',
                         },
                         {
+                            album_id: 1,
                             song_num:2, 
                             song_name: "When Did You Leave Heaven?", 
                             length: null, 
-                            genre: {
-                                genre: 'blues',
-                                name: 'Blues'
-                            }
+                            genre: 'blues',
                         }]
                     }]
                 })
