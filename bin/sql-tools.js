@@ -80,7 +80,7 @@ SqlTools.quoteLiteral = function(dbAnyValue){
 SqlTools.structuredData={};
 
 SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
-    var getFKJoinCondition = function(structuredData, parentStructuredData){
+    var getFKJoinConditionString = function(structuredData, parentStructuredData){
         if(structuredData.foreignKey){
             return structuredData.foreignKey.map(function(elem){
                 return SqlTools.quoteIdent(structuredData.tableName) + '.' + (elem.source || elem) + '=' + SqlTools.quoteIdent(parentStructuredData.tableName) + '.' + (elem.target || elem);
@@ -88,10 +88,12 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
         }
         return '';
     }
-    var getPKJoinCondition = function(pkValues, structuredData){
+    var getPKJoinConditionString = function(pkValues, structuredData){
         if(structuredData.primaryKey && structuredData.primaryKey.length){
             return structuredData.primaryKey.map(function(elem){
-                return SqlTools.quoteIdent(structuredData.tableName) + '.' + elem + '=' + pkValues[elem];
+                parameters.count++;
+                parameters.values.push(pkValues[elem]);
+                return SqlTools.quoteIdent(structuredData.tableName) + '.' + elem + '= $' + parameters.count;
             }).join(" and ");
         }else{
             return 'true';
@@ -107,22 +109,26 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
                     });
                 }
                 subqueriesString += 
-                        `|| jsonb_build_object(`+ SqlTools.quoteLiteral(childStructure.tableName) + `,
-                            (select jsonb_agg(to_jsonb(`+ SqlTools.quoteIdent(childStructure.tableName) + `.*) ` + skipColumns.join('') + getSubqueriesString(childStructure, subqueriesString) + `)
-                             from `+ SqlTools.quoteIdent(childStructure.tableName) +` `+ SqlTools.quoteIdent(childStructure.tableName) +`
-                             where ` + getFKJoinCondition(childStructure, sd)
-                         + `)
+                    `|| jsonb_build_object(`+ SqlTools.quoteLiteral(childStructure.tableName) + `,
+                        (select jsonb_agg(to_jsonb(`+ SqlTools.quoteIdent(childStructure.tableName) + `.*) ` + skipColumns.join('') + getSubqueriesString(childStructure, subqueriesString) + `)
+                         from `+ SqlTools.quoteIdent(childStructure.tableName) +` `+ SqlTools.quoteIdent(childStructure.tableName) +`
+                         where ` + getFKJoinConditionString(childStructure, sd)
+                     + `)
                 )`;
             });
         }
         return subqueriesString;
     }
+    var parameters = {count: 0, values: []};
     var consulta = 
                     `select
                         to_jsonb(`+ SqlTools.quoteIdent(mainStructuredData.tableName) +`.*) ` + getSubqueriesString(mainStructuredData, '') +
                     ` from `+ SqlTools.quoteIdent(mainStructuredData.tableName) + ` ` + SqlTools.quoteIdent(mainStructuredData.tableName) + `
-                    where `+ getPKJoinCondition(pk, mainStructuredData);
-    return consulta;
+                    where `+ getPKJoinConditionString(pk, mainStructuredData);
+    return {
+        text: consulta,
+        values: parameters.values
+    }
 }
 
 SqlTools.structuredData.sqlWrite = function sqlWrite(pk, structuredData){

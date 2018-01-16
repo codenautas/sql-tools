@@ -176,7 +176,7 @@ describe('sql-tools', function(){
             });
         });
         it("reads one record label", function(){
-            return client.query(SqlTools.structuredData.sqlRead({record_label:'\'sonymusic\''}, struct_record_labels)).fetchUniqueValue().then(function(result){
+            return client.query(SqlTools.structuredData.sqlRead({record_label:'sonymusic'}, struct_record_labels)).fetchUniqueValue().then(function(result){
                 expect(result.value).to.eql({
                     record_label: 'sonymusic', 
                     name: 'Sony Music',
