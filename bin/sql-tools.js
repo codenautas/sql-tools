@@ -83,7 +83,7 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
     var getFKJoinCondition = function(structuredData, parentStructuredData){
         if(structuredData.foreignKey){
             return structuredData.foreignKey.map(function(elem){
-                return structuredData.tableName + '.' + (elem.source || elem) + '=' + parentStructuredData.tableName + '.' + (elem.target || elem);
+                return SqlTools.quoteIdent(structuredData.tableName) + '.' + (elem.source || elem) + '=' + SqlTools.quoteIdent(parentStructuredData.tableName) + '.' + (elem.target || elem);
             }).join(" and ");
         }
         return '';
@@ -91,13 +91,13 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
     var getPKJoinCondition = function(pkValues, structuredData){
         if(structuredData.primaryKey && structuredData.primaryKey.length){
             return structuredData.primaryKey.map(function(elem){
-                return structuredData.tableName + '.' + elem + '=' + pkValues[elem];
+                return SqlTools.quoteIdent(structuredData.tableName) + '.' + elem + '=' + pkValues[elem];
             }).join(" and ");
         }else{
             return 'true';
         }
     }
-    var getChildrenStructuresQueryObjects = function(sd, childrenStructuresQueryObjects){
+    var getSubqueriesString = function(sd, subqueriesString){
         if(sd.childrenTables){
             sd.childrenTables.forEach(function(childStructure){
                 var skipColumns=[];
@@ -106,23 +106,21 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
                         skipColumns.push(" - " + SqlTools.quoteLiteral(field.source || field));
                     });
                 }
-                childrenStructuresQueryObjects += 
-                        `|| jsonb_build_object('`+ childStructure.tableName + `',
-                                    (select jsonb_agg(to_jsonb(`+ childStructure.tableName +`.*) ` + skipColumns.join('') + getChildrenStructuresQueryObjects(childStructure, childrenStructuresQueryObjects) + `)
-                                     from `+ childStructure.tableName +` `+ childStructure.tableName +`
-                                     where ` + getFKJoinCondition(childStructure, sd)
-                                 + `)
+                subqueriesString += 
+                        `|| jsonb_build_object(`+ SqlTools.quoteLiteral(childStructure.tableName) + `,
+                            (select jsonb_agg(to_jsonb(`+ SqlTools.quoteIdent(childStructure.tableName) + `.*) ` + skipColumns.join('') + getSubqueriesString(childStructure, subqueriesString) + `)
+                             from `+ SqlTools.quoteIdent(childStructure.tableName) +` `+ SqlTools.quoteIdent(childStructure.tableName) +`
+                             where ` + getFKJoinCondition(childStructure, sd)
+                         + `)
                 )`;
             });
         }
-        return childrenStructuresQueryObjects;
+        return subqueriesString;
     }
-    var childrenStructuresQueryObjects = getChildrenStructuresQueryObjects(mainStructuredData, '');
     var consulta = 
                     `select
-                        to_jsonb(`+mainStructuredData.tableName+`.*) 
-                             ` + childrenStructuresQueryObjects +
-                    ` from `+ mainStructuredData.tableName + ` ` + mainStructuredData.tableName + `
+                        to_jsonb(`+ SqlTools.quoteIdent(mainStructuredData.tableName) +`.*) ` + getSubqueriesString(mainStructuredData, '') +
+                    ` from `+ SqlTools.quoteIdent(mainStructuredData.tableName) + ` ` + SqlTools.quoteIdent(mainStructuredData.tableName) + `
                     where `+ getPKJoinCondition(pk, mainStructuredData);
     return consulta;
 }
