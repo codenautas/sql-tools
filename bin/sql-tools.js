@@ -80,13 +80,10 @@ SqlTools.quoteLiteral = function(dbAnyValue){
 SqlTools.structuredData={};
 
 SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
-    var getFKJoinCondition = function(structuredData, parentTableName){
-        var foreignKey = structuredData.foreignKeys.find(function(elem){
-            return elem.references == parentTableName;
-        });
-        if(foreignKey){
-            return foreignKey.fields.map(function(elem){
-                return structuredData.tableName + '.' + elem.source + '=' + parentTableName + '.' + elem.target;
+    var getFKJoinCondition = function(structuredData, parentStructuredData){
+        if(structuredData.foreignKey){
+            return structuredData.foreignKey.map(function(elem){
+                return structuredData.tableName + '.' + (elem.source || elem) + '=' + parentStructuredData.tableName + '.' + (elem.target || elem);
             }).join(" and ");
         }
         return '';
@@ -104,20 +101,16 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
         if(sd.childrenTables){
             sd.childrenTables.forEach(function(childStructure){
                 var skipColumns=[];
-                if(childStructure.foreignKeys){
-                    childStructure.foreignKeys.forEach(function(fk){
-                        if(fk.references == sd.tableName){
-                            fk.fields.forEach(function(field){
-                                skipColumns.push(" - " + SqlTools.quoteLiteral(field.source));
-                            });
-                        }
+                if(childStructure.foreignKey){
+                    childStructure.foreignKey.forEach(function(field){
+                        skipColumns.push(" - " + SqlTools.quoteLiteral(field.source || field));
                     });
                 }
                 childrenStructuresQueryObjects += 
                         `|| jsonb_build_object('`+ childStructure.tableName + `',
                                     (select jsonb_agg(to_jsonb(`+ childStructure.tableName +`.*) ` + skipColumns.join('') + getChildrenStructuresQueryObjects(childStructure, childrenStructuresQueryObjects) + `)
                                      from `+ childStructure.tableName +` `+ childStructure.tableName +`
-                                     where ` + getFKJoinCondition(childStructure, sd.tableName)
+                                     where ` + getFKJoinCondition(childStructure, sd)
                                  + `)
                 )`;
             });

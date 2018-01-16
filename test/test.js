@@ -8,6 +8,8 @@ var pg = require('pg-promise-strict');
 
 var MiniTools = require('mini-tools');
 
+var changing = require('best-globals').changing;
+
 describe('sql-tools', function(){
   describe('olap',function(){
     describe('cube',function(){
@@ -95,21 +97,13 @@ describe('sql-tools', function(){
     var struct_songs={
         tableName:'songs',
         primaryKey:['album_id', 'song_num'],
-        foreignKeys:[
-            {references:'albums',objectName:'album', fields:[{target:'id', source:'album_id'}]},
-            {references:'genres', objectName:'genre', fields:[{target:'genre', source:'genre'}]}
-        ],
         childrenTables:[],
     };
     var struct_albums={
         tableName:'albums',
         primaryKey:['id'],
-        foreignKeys:[
-            {references:'record_labels', objectName: 'record_label', fields:[{target:'record_label', source:'record_label'}]},
-            {references:'artists', objectName: 'artist', fields:[{target:'id', source:'artist_id'}]}
-        ],
         childrenTables:[
-            struct_songs
+            changing(struct_songs,{foreignKey: [{target:'id', source:'album_id'}]})
         ]
     };
     var struct_artists={
@@ -117,7 +111,7 @@ describe('sql-tools', function(){
         primaryKey:['id'],
         foreignKeys:[],
         childrenTables:[
-            struct_albums
+            changing(struct_albums,{foreignKey: [{target:'id', source:'artist_id'}]})
         ]
     };
     var struct_record_labels={
@@ -125,10 +119,9 @@ describe('sql-tools', function(){
         primaryKey:['record_label'],
         foreignKeys:[],
         childrenTables:[
-            struct_albums
+            changing(struct_albums,{foreignKey: ['record_label']})
         ]
     };
-    var completeStructure = [struct_artists, struct_record_labels];
     before(function(){
         pg.setAllTypes();
         pg.easy=true;
