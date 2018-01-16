@@ -103,12 +103,22 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
     var getChildrenStructuresQueryObjects = function(sd, childrenStructuresQueryObjects){
         if(sd.childrenTables){
             sd.childrenTables.forEach(function(childStructure){
+                var skipColumns=[];
+                if(childStructure.foreignKeys){
+                    childStructure.foreignKeys.forEach(function(fk){
+                        if(fk.references == sd.tableName){
+                            fk.fields.forEach(function(field){
+                                skipColumns.push(" - " + SqlTools.quoteLiteral(field.source));
+                            });
+                        }
+                    });
+                }
                 childrenStructuresQueryObjects += 
                         `|| jsonb_build_object('`+ childStructure.tableName + `',
-                                                    (select jsonb_agg(to_jsonb(`+ childStructure.tableName +`.*) ` + getChildrenStructuresQueryObjects(childStructure, childrenStructuresQueryObjects) + `)
-                                                     from `+ childStructure.tableName +` `+ childStructure.tableName +`
-                                                     where ` + getFKJoinCondition(childStructure, sd.tableName)
-                                                 + `)
+                                    (select jsonb_agg(to_jsonb(`+ childStructure.tableName +`.*) ` + skipColumns.join('') + getChildrenStructuresQueryObjects(childStructure, childrenStructuresQueryObjects) + `)
+                                     from `+ childStructure.tableName +` `+ childStructure.tableName +`
+                                     where ` + getFKJoinCondition(childStructure, sd.tableName)
+                                 + `)
                 )`;
             });
         }

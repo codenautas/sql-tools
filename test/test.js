@@ -168,14 +168,12 @@ describe('sql-tools', function(){
                     record_label: 'sonymusic',
                     artist_id: 1,
                     songs:[{
-                        album_id: 1,
                         song_num:1, 
                         song_name:"Let's Stick Together",
                         length: null, 
                         genre: 'rock',
                     },
                     {
-                        album_id: 1,
                         song_num:2, 
                         song_name: "When Did You Leave Heaven?", 
                         length: null, 
@@ -193,17 +191,14 @@ describe('sql-tools', function(){
                         id:1,
                         title:'Down in the Groove',
                         year:1988,
-                        record_label: 'sonymusic',
                         artist_id: 1,
                         songs:[{
-                            album_id: 1,
                             song_num:1, 
                             song_name:"Let's Stick Together",
                             length: null, 
                             genre: 'rock',
                         },
                         {
-                            album_id: 1,
                             song_num:2, 
                             song_name: "When Did You Leave Heaven?", 
                             length: null, 
