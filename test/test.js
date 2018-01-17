@@ -175,6 +175,37 @@ describe('sql-tools', function(){
                 })
             });
         });
+        it("reads all albums", function(){
+            return client.query(SqlTools.structuredData.sqlRead(null, struct_albums)).fetchUniqueValue().then(function(result){
+                expect(result.value).to.eql([{
+                    id:1,
+                    title:'Down in the Groove',
+                    year:1988,
+                    record_label: 'sonymusic',
+                    artist_id: 1,
+                    songs:[{
+                        song_num:1, 
+                        song_name:"Let's Stick Together",
+                        length: null, 
+                        genre: 'rock',
+                    },
+                    {
+                        song_num:2, 
+                        song_name: "When Did You Leave Heaven?", 
+                        length: null, 
+                        genre: 'blues',
+                    }]
+                },
+                {
+                    id:2,
+                    title:'Tempest',
+                    year:2012,
+                    record_label: 'wb',
+                    artist_id: 1,
+                    songs: null
+                }])
+            });
+        });
         it("reads one record label", function(){
             return client.query(SqlTools.structuredData.sqlRead({record_label:'sonymusic'}, struct_record_labels)).fetchUniqueValue().then(function(result){
                 expect(result.value).to.eql({

@@ -81,15 +81,12 @@ SqlTools.structuredData={};
 
 SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
     var getFKJoinConditionString = function(structuredData, parentStructuredData){
-        if(structuredData.foreignKey){
-            return structuredData.foreignKey.map(function(elem){
-                return SqlTools.quoteIdent(structuredData.tableName) + '.' + (elem.source || elem) + '=' + SqlTools.quoteIdent(parentStructuredData.tableName) + '.' + (elem.target || elem);
-            }).join(" and ");
-        }
-        return '';
+        return structuredData.foreignKey.map(function(elem){
+            return SqlTools.quoteIdent(structuredData.tableName) + '.' + (elem.source || elem) + '=' + SqlTools.quoteIdent(parentStructuredData.tableName) + '.' + (elem.target || elem);
+        }).join(" and ");
     }
     var getPKJoinConditionString = function(pkValues, structuredData){
-        if(structuredData.primaryKey && structuredData.primaryKey.length){
+        if(structuredData.primaryKey && structuredData.primaryKey.length && pkValues){
             return structuredData.primaryKey.map(function(elem){
                 parameters.count++;
                 parameters.values.push(pkValues[elem]);
@@ -121,9 +118,9 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, mainStructuredData){
     }
     var parameters = {count: 0, values: []};
     var consulta = 
-                    `select
+                    `select ` + (pk?'':'array_to_json(array_agg(') + `
                         to_jsonb(`+ SqlTools.quoteIdent(mainStructuredData.tableName) +`.*) ` + getSubqueriesString(mainStructuredData, '') +
-                    ` from `+ SqlTools.quoteIdent(mainStructuredData.tableName) + ` ` + SqlTools.quoteIdent(mainStructuredData.tableName) + `
+                        (pk?'':'))') + ` from `+ SqlTools.quoteIdent(mainStructuredData.tableName) + ` ` + SqlTools.quoteIdent(mainStructuredData.tableName) + `
                     where `+ getPKJoinConditionString(pk, mainStructuredData);
     return {
         text: consulta,

@@ -49,7 +49,7 @@ insert into record_labels
          ('wb', 'Warner Bros');
 
 insert into albums
-  values (1, 1, 'Down in the Groove', 1988, 'sonymusic');
+  values (1, 1, 'Down in the Groove', 1988, 'sonymusic'), (2, 1, 'Tempest', 2012, 'wb');
   
 insert into songs
   values (1, 1, 'Let''s Stick Together', null, 'rock'),
