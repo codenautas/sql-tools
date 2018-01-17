@@ -119,17 +119,35 @@ select coalesce(jsonb_agg(to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQu
     }
 }
 
-SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData){
+SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(structuredData, data, parentData){
+    if(structuredData.childTables && structuredData.childTables.length){
+        structuredData.childTables.forEach(function(childTable){
+            SqlTools.structuredData.sqlsDeletes(childTable, data[childTable.tableName], data, structuredData);
+        });
+    }
+    var condition = [];
+    data.forEach(function(elem){
+        var value = {}
+        structuredData.pkFields.forEach(function(field){
+            if(elem[field.fieldName]){
+                condition.push(field.fieldName + ' <> ' + elem[field.fieldName]);
+            }else{
+                condition.push(field.fieldName + ' = ' + parentData[structuredData.fkFields.find(function(elem){ return elem.source === field.fieldName}).target]);
+            }
+        })
+    })
+    console.log("delete from " + structuredData.tableName + " where " + condition.join(' and ') + ";" );
+    
     return {
         text: ``
     }
 }
 
-SqlTools.structuredData.sqlsWrite = function sqlWrite(pk, structuredData){
-    return SqlTools.structuredData.sqlsDeletes(pk, structuredData).concat(
-        SqlTools.structuredData.sqlsUpdates(pk, structuredData)
+SqlTools.structuredData.sqlsWrite = function sqlWrite(structuredData, data){
+    return SqlTools.structuredData.sqlsDeletes(structuredData, data, null).concat(
+        SqlTools.structuredData.sqlsUpdates(structuredData, data)
     ).concat(
-        SqlTools.structuredData.sqlsInserts(pk, structuredData)
+        SqlTools.structuredData.sqlsInserts(structuredData, data)
     );
 }
 

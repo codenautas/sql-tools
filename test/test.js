@@ -200,7 +200,7 @@ describe('sql-tools', function(){
                     {song_num:3, song_name:"Sally Sue Brown"}, 
                 ]
             }
-            var queries = SqlTools.structuredData.sqlsWrite({id:1}, struct_albums, data);
+            var queries = SqlTools.structuredData.sqlsWrite(struct_albums, data);
             return queries.reduce(function(promise, query){
                 return promise.then(function() {
                     return client.query(query).execute();
