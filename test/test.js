@@ -204,7 +204,7 @@ describe('sql-tools', function(){
                     ]
                 }]
             }
-            var queries = SqlTools.structuredData.sqlsWrite(struct_artist_production, data);
+            var queries = SqlTools.structuredData.sqlsWrite({artist_id:101}, struct_artist_production, data);
             return queries.reduce(function(promise, query){
                 return promise.then(function() {
                     return client.query(query).execute();

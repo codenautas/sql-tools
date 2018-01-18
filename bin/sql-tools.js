@@ -119,49 +119,47 @@ select coalesce(jsonb_agg(to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQu
     }
 }
 
-SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(structuredData, data, parentData, parentStructureData){
+SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData, data, parentData, parentStructureData){
     if(structuredData.childTables && structuredData.childTables.length){
         structuredData.childTables.forEach(function(childTable){
-            if(data.length){
+            if(parentStructureData){
                 data.forEach(function(elem){
-                    SqlTools.structuredData.sqlsDeletes(childTable, elem[childTable.tableName], elem, structuredData);
+                    SqlTools.structuredData.sqlsDeletes(pk, childTable, elem[childTable.tableName], elem, structuredData);
                 })
             }else{
-                SqlTools.structuredData.sqlsDeletes(childTable, data[childTable.tableName], data, structuredData);    
+                SqlTools.structuredData.sqlsDeletes(pk, childTable, data[childTable.tableName], data, structuredData);    
             }
         });
     }
-    var condition = [];
-    if(data.length){
+    if(parentStructureData){
+        var condition = [];
         data.forEach(function(elem){
-            var value = {}
             structuredData.pkFields.forEach(function(field){
                 if(elem[field.fieldName]){
                     condition.push(field.fieldName + ' <> ' + elem[field.fieldName]);
                 }else{
-                    condition.push(field.fieldName + ' = ' + parentData[structuredData.fkFields.find(function(elem){ return elem.source === field.fieldName}).target]);
+                    condition.push(field.fieldName + ' = ' + parentData[structuredData.fkFields.find(function(fkField){ return fkField.source === field.fieldName}).target]);
                 }
             })
         })
-        if(parentStructureData){
-            parentStructureData.pkFields.forEach(function(field){
-                if(parentData[structuredData.fkFields.find(function(elem){ return elem.target === field.fieldName}).source]){
-                    condition.push(field.fieldName + ' = ' + parentData[field.fieldName]);
-                }
-            });
-        }
+        parentStructureData.pkFields.forEach(function(field){
+            if(parentData[structuredData.fkFields.find(function(elem){ return elem.target === field.fieldName}).source]){
+                condition.push(field.fieldName + ' = ' + parentData[field.fieldName]);
+            }
+        });
         console.log("delete from " + structuredData.tableName + " where " + condition.join(' and ') + ";" );
     }
+    
     return {
         text: ``
     }
 }
 
-SqlTools.structuredData.sqlsWrite = function sqlWrite(structuredData, data){
-    return SqlTools.structuredData.sqlsDeletes(structuredData, data, null, null).concat(
-        SqlTools.structuredData.sqlsUpdates(structuredData, data)
+SqlTools.structuredData.sqlsWrite = function sqlWrite(pk, structuredData, data){
+    return SqlTools.structuredData.sqlsDeletes(pk, structuredData, data, null, null).concat(
+        SqlTools.structuredData.sqlsUpdates(pk, structuredData, data)
     ).concat(
-        SqlTools.structuredData.sqlsInserts(structuredData, data)
+        SqlTools.structuredData.sqlsInserts(pk, structuredData, data)
     );
 }
 
