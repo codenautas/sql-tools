@@ -192,15 +192,19 @@ describe('sql-tools', function(){
     describe('sqlWrite', function(){
         it("delete 1fs, update 2nd, insert 3er", function(){
             var data={
-                id:1,
-                title:'Down in the Groove',
-                year:1989,
-                songs:[
-                    {song_num:2, song_name:"When Did You Leave Heaven?", "length": "2:15"},
-                    {song_num:3, song_name:"Sally Sue Brown"}, 
-                ]
+                artist_id:101,
+                name:'Bob Dylan',
+                albums:[{
+                    id:1,
+                    title:'Down in the Groove',
+                    year:1989,
+                    songs:[
+                        {song_num:2, song_name:"When Did You Leave Heaven?", "length": "2:15"},
+                        {song_num:3, song_name:"Sally Sue Brown"}, 
+                    ]
+                }]
             }
-            var queries = SqlTools.structuredData.sqlsWrite(struct_albums, data);
+            var queries = SqlTools.structuredData.sqlsWrite(struct_artist_production, data);
             return queries.reduce(function(promise, query){
                 return promise.then(function() {
                     return client.query(query).execute();
