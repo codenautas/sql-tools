@@ -210,13 +210,13 @@ describe('sql-tools', function(){
                     return client.query(query).execute();
                 });
             }, Promise.resolve()).then(function(){
-                return client.query("select * from songs where album_id=$1 and song_num=$2",1,1).fetchRowIfExists();
+                return client.query("select * from songs where album_id=$1 and song_num=$2",[1,1]).fetchOneRowIfExists();
             }).then(function(result){
                 expect(result.rowCount).to.eql(0);
-                return client.query("select * from songs where album_id=$1 and song_num=$2",1,2).fetchUniqueRow();
+                return client.query("select * from songs where album_id=$1 and song_num=$2",[1,2]).fetchUniqueRow();
             }).then(function(result){
                 expect(result.row.length).to.eql("2:15");
-                return client.query("select * from songs where album_id=$1 and song_num=$2",1,3).fetchUniqueRow();
+                return client.query("select * from songs where album_id=$1 and song_num=$2",[1,3]).fetchUniqueRow();
             }).then(function(result){
                 expect(result.row).to.eql({song_num:3, song_name:"Sally Sue Brown", length:null});
             });

@@ -119,15 +119,15 @@ select coalesce(jsonb_agg(to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQu
     }
 }
 
-SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData, data, parentData, parentStructureData){
+SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData, data, parentData, parentStructureData, queriesArray){
     if(structuredData.childTables && structuredData.childTables.length){
         structuredData.childTables.forEach(function(childTable){
             if(parentStructureData){
                 data.forEach(function(elem){
-                    SqlTools.structuredData.sqlsDeletes(pk, childTable, elem[childTable.tableName], elem, structuredData);
+                    queriesArray = SqlTools.structuredData.sqlsDeletes(pk, childTable, elem[childTable.tableName], elem, structuredData, queriesArray);
                 })
             }else{
-                SqlTools.structuredData.sqlsDeletes(pk, childTable, data[childTable.tableName], data, structuredData);    
+                queriesArray = SqlTools.structuredData.sqlsDeletes(pk, childTable, data[childTable.tableName], data, structuredData, queriesArray);    
             }
         });
     }
@@ -147,16 +147,23 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData, d
                 condition.push(field.fieldName + ' = ' + parentData[field.fieldName]);
             }
         });
-        console.log("delete from " + structuredData.tableName + " where " + condition.join(' and ') + ";" );
+        queriesArray.push("delete from " + structuredData.tableName + " where " + condition.join(' and ') + ";");
+        
     }
+    return queriesArray
     
-    return {
-        text: ``
-    }
+}
+
+SqlTools.structuredData.sqlsUpdates = function sqlsUpdates(pk, structuredData, data){
+    return []
+}
+
+SqlTools.structuredData.sqlsInserts = function sqlsInserts(pk, structuredData, data){
+    return []
 }
 
 SqlTools.structuredData.sqlsWrite = function sqlWrite(pk, structuredData, data){
-    return SqlTools.structuredData.sqlsDeletes(pk, structuredData, data, null, null).concat(
+    return SqlTools.structuredData.sqlsDeletes(pk, structuredData, data, null, null, []).concat(
         SqlTools.structuredData.sqlsUpdates(pk, structuredData, data)
     ).concat(
         SqlTools.structuredData.sqlsInserts(pk, structuredData, data)
