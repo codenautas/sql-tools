@@ -11,3 +11,8 @@ after_script:
 addons:
   code_climate:
     repo_token: 75b3eaf6e9c9dbf54337fe83a831873db629a62809b3e6c7350d1e28fd43248b
+  postgresql: "9.6"
+before_script:
+  - psql -c 'create user test_user password $$test_pass$$;' -U postgres
+  - psql -c 'create database test_db owner test_user;' -U postgres
+  - psql -U postgres -f install/structured-data.sql test_db
