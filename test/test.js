@@ -218,7 +218,7 @@ describe('sql-tools', function(){
                 expect(result.row.length).to.eql("2:15");
                 return client.query("select * from songs where album_id=$1 and song_num=$2",[1,3]).fetchUniqueRow();
             }).then(function(result){
-                expect(result.row).to.eql({song_num:3, song_name:"Sally Sue Brown", length:null});
+                expect(result.row).to.eql({album_id: 1, song_num:3, song_name:"Sally Sue Brown", length:null});
             });
         });
     });

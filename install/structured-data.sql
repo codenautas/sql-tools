@@ -19,7 +19,7 @@ create table songs(
     song_num integer,
     song_name text,
     "length" text,
-    primary key (album_id, song_name)
+    primary key (album_id, song_num)
 );
 
 insert into artists values (101,'Bob Dylan');
