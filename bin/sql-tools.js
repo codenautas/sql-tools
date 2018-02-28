@@ -161,10 +161,8 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData, d
             }
         });
         queriesArray.push("delete from " + structuredData.tableName + " where " + condition.join(' and ') + ";");
-        
     }
     return queriesArray
-    
 }
 
 SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(pk, structuredData, data, parentData, parentStructureData, queriesArray){
@@ -238,5 +236,4 @@ SqlTools.structuredData.sqlsWrite = function sqlWrite(pk, structuredData, data){
         SqlTools.structuredData.sqlsUpserts(pk, structuredData, data, null, null, [])
     );
 }
-
 module.exports=SqlTools;

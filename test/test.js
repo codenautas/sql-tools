@@ -166,7 +166,6 @@ describe('sql-tools', function(){
             });
         });
         it("reads one artist", function(){
-            console.log(SqlTools.structuredData.sqlRead({artist_id:101}, struct_artist_production).text);
             return client.query(SqlTools.structuredData.sqlRead({artist_id:101}, struct_artist_production)).fetchUniqueValue().then(function(result){
                 expect(result.value).to.eql([{
                     artist_id:101,
