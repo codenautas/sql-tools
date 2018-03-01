@@ -94,38 +94,6 @@ describe('sql-tools', function(){
     }
     var client;
     var poolLog;
-    /*
-    var unique_struct_albums={
-        pkFields:[{fieldName:'id'}],
-        tableName:'albums',
-        childTables:[]
-    }
-    var struct_albums={
-        tableName:'albums',
-        pkFields:[{fieldName:'id'}],
-        childTables:[{
-            tableName:'songs',
-            pkFields:[{fieldName:'album_id'}, {fieldName:'song_num'}],
-            fkFields:[{target:'id', source:'album_id'}],
-            childTables:[],
-        }]
-    }
-    var struct_artist_production={
-        tableName:'artists',
-        pkFields:[{fieldName:'artist_id'}],
-        childTables:[{
-            tableName:'albums',
-            pkFields:[{fieldName:'id'}],
-            fkFields:[{target:'artist_id', source:'artist_id'}],
-            childTables:[{
-                tableName:'songs',
-                pkFields:[{fieldName:'album_id'}, {fieldName:'song_num'}],
-                fkFields:[{target:'id', source:'album_id'}],
-                childTables:[],
-            }]
-        }]
-    }*/
-    
     var struct_songs={
         tableName:'songs',
         pkFields:[{fieldName:'album_id'}, {fieldName:'song_num'}],
@@ -173,16 +141,6 @@ describe('sql-tools', function(){
         },1000);
     });
     describe('sqlRead', function(){
-        /*it("reads one album without inner data", function(){
-            return client.query(SqlTools.structuredData.sqlRead({id:1}, unique_struct_albums)).fetchUniqueValue().then(function(result){
-                expect(result.value).to.eql([{
-                    id:1,
-                    artist_id:101,
-                    title:'Down in the Groove',
-                    year:1988,
-                }])
-            });
-        */
         it("reads one song", function(){
             return client.query(SqlTools.structuredData.sqlRead({album_id:1, song_num:1}, struct_songs)).fetchUniqueValue().then(function(result){
                 expect(result.value).to.eql({
