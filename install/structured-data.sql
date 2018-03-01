@@ -3,15 +3,27 @@ create schema sd;
 set search_path = sd;
 
 create table artists(
-    artist_id integer primary key,
+    id integer primary key,
+    name text,
+    lastname text
+);
+
+create table record_labels(
+    record_label text primary key,
+    name text
+);
+
+create table genres(
+    genre text primary key,
     name text
 );
 
 create table albums(
     id integer primary key,
-    artist_id integer references artists (artist_id),
+    artist_id integer references artists(id),
     title text,
-    year integer 
+    year integer,
+    record_label text references record_labels(record_label)
 );
 
 create table songs(
@@ -19,16 +31,26 @@ create table songs(
     song_num integer,
     song_name text,
     "length" text,
+    genre text references genres(genre),
     primary key (album_id, song_num)
 );
 
-insert into artists values (101,'Bob Dylan');
+insert into artists
+  values (101, 'Bob', 'Dylan'),
+         (102, 'Paul', 'McCartney');
 
-insert into albums values
-  (1, 101, 'Down in the Groove', 1988),
-  (2, 101, 'Another Side of Bob Dylan', 1964);
+insert into genres
+  values ('rock', 'Rock'),
+         ('blues', 'Blues');
+         
+insert into record_labels
+  values ('sonymusic', 'Sony Music'),
+         ('emi', 'EMI'),
+         ('wb', 'Warner Bros');
+
+insert into albums
+  values (1, 101, 'Down in the Groove', 1988, 'sonymusic'), (2, 101, 'Tempest', 2012, 'wb');
   
 insert into songs
-  values (1, 1, 'Let''s Stick Together'),
-         (1, 2, 'When Did You Leave Heaven?');
-
+  values (1, 1, 'Let''s Stick Together', null, 'rock'),
+         (1, 2, 'When Did You Leave Heaven?', null, 'blues');

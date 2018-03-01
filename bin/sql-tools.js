@@ -114,18 +114,20 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInf
     }
     var subQueries=structuredData.childTables.map(function(childTable){
         var query = SqlTools.structuredData.sqlRead({}, childTable, globalInfo, /*inheritedKeys.concat*/(childTable.fkFields), structuredData)
-        return `
-    || jsonb_build_object('${childTable.tableName}',(${query.text}))
-`;
+        return `|| jsonb_build_object('${childTable.tableName}',(${query.text}))`;
     }).join('');
+    var select_string = `to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQueries} `;
+    select_string = parentStructure?`coalesce(jsonb_agg(`+select_string+`),'[]'::jsonb) `:select_string;
     return {
-        text: `
-select coalesce(jsonb_agg(to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQueries}),'[]'::jsonb)
-  from ${structuredData.tableName} as ${q_alias}
-  where ${where_expr}
-`,
+        text: 
+            `
+            select ${select_string}
+              from ${structuredData.tableName} as ${q_alias}
+              where ${where_expr}
+            `,
         values: globalInfo.parameterValues
     }
+    
 }
 
 SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData, data, parentData, parentStructureData, queriesArray){
@@ -230,7 +232,7 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(pk, structuredData, d
     return queriesArray
 }
 
-SqlTools.structuredData.sqlsWrite = function sqlWrite(pk, structuredData, data){
+SqlTools.structuredData.sqlWrite = function sqlWrite(pk, structuredData, data){
     return SqlTools.structuredData.sqlsDeletes(pk, structuredData, data, null, null, [])
     .concat(
         SqlTools.structuredData.sqlsUpserts(pk, structuredData, data, null, null, [])

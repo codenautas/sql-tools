@@ -8,6 +8,8 @@ var pg = require('pg-promise-strict');
 
 var MiniTools = require('mini-tools');
 
+var changing = require('best-globals').changing;
+
 describe('sql-tools', function(){
   describe('olap',function(){
     describe('cube',function(){
@@ -92,6 +94,7 @@ describe('sql-tools', function(){
     }
     var client;
     var poolLog;
+    /*
     var unique_struct_albums={
         pkFields:[{fieldName:'id'}],
         tableName:'albums',
@@ -121,7 +124,36 @@ describe('sql-tools', function(){
                 childTables:[],
             }]
         }]
-    }
+    }*/
+    
+    var struct_songs={
+        tableName:'songs',
+        pkFields:[{fieldName:'album_id'}, {fieldName:'song_num'}],
+        childTables:[],
+    };
+    var struct_albums={
+        tableName:'albums',
+        pkFields:[{fieldName:'id'}],
+        childTables:[
+            changing(struct_songs,{fkFields: [{target:'id', source:'album_id'}]})
+        ]
+    };
+    var struct_artists={
+        tableName:'artists',
+        pkFields:[{fieldName:'id'}],
+        foreignKeys:[],
+        childTables:[
+            changing(struct_albums,{fkFields: [{target:'id', source:'artist_id'}]})
+        ]
+    };
+    var struct_record_labels={
+        tableName:'record_labels',
+        pkFields:[{fieldName:'record_label'}],
+        foreignKeys:[],
+        childTables:[
+            changing(struct_albums,{fkFields: ['record_label']})
+        ]
+    };
     before(function(){
         pg.setAllTypes();
         pg.easy=true;
@@ -141,7 +173,7 @@ describe('sql-tools', function(){
         },1000);
     });
     describe('sqlRead', function(){
-        it("reads one album without inner data", function(){
+        /*it("reads one album without inner data", function(){
             return client.query(SqlTools.structuredData.sqlRead({id:1}, unique_struct_albums)).fetchUniqueValue().then(function(result){
                 expect(result.value).to.eql([{
                     id:1,
@@ -150,60 +182,71 @@ describe('sql-tools', function(){
                     year:1988,
                 }])
             });
+        */
+        it("reads one song", function(){
+            return client.query(SqlTools.structuredData.sqlRead({album_id:1, song_num:1}, struct_songs)).fetchUniqueValue().then(function(result){
+                expect(result.value).to.eql({
+                    song_num:1, 
+                    song_name:"Let's Stick Together",
+                    length: null, 
+                    genre: 'rock',
+                    album_id:1,
+                })
+            });
         });
         it("reads one album", function(){
             return client.query(SqlTools.structuredData.sqlRead({id:1}, struct_albums)).fetchUniqueValue().then(function(result){
-                expect(result.value).to.eql([{
+                expect(result.value).to.eql({
                     id:1,
                     artist_id:101,
                     title:'Down in the Groove',
                     year:1988,
+                    record_label: 'sonymusic',
                     songs:[
-                        {song_num:1, length:null, song_name:"Let's Stick Together"},
-                        {song_num:2, length:null, song_name:"When Did You Leave Heaven?"},
+                        {song_num:1, length:null, song_name:"Let's Stick Together", genre: 'rock'},
+                        {song_num:2, length:null, song_name:"When Did You Leave Heaven?", genre: 'blues'},
                     ]
-                }])
+                })
             });
         });
         it("reads one artist", function(){
-            return client.query(SqlTools.structuredData.sqlRead({artist_id:101}, struct_artist_production)).fetchUniqueValue().then(function(result){
-                expect(result.value).to.eql([{
-                    artist_id:101,
-                    name:'Bob Dylan',
+            return client.query(SqlTools.structuredData.sqlRead({id:101}, struct_artists)).fetchUniqueValue().then(function(result){
+                expect(result.value).to.eql({
+                    id:101,
+                    name:'Bob',
+                    lastname:'Dylan',
                     albums:[{
                         id:1,
                         title:'Down in the Groove',
                         year:1988,
+                        record_label: 'sonymusic',
                         songs:[
-                            {song_num:1, length:null, song_name:"Let's Stick Together"},
-                            {song_num:2, length:null, song_name:"When Did You Leave Heaven?"},
+                            {song_num:1, length:null, song_name:"Let's Stick Together", genre: 'rock'},
+                            {song_num:2, length:null, song_name:"When Did You Leave Heaven?", genre: 'blues'},
                         ]
                     },{
                         id:2,
-                        title:'Another Side of Bob Dylan',
-                        year:1964,
+                        title:'Tempest',
+                        record_label: 'wb',
+                        year:2012,
                         songs:[]
                     }]
-                }])
+                })
             });
         });
     });
     describe('sqlWrite', function(){
-        it("delete 1fs, update 2nd, insert 3er", function(){
+        it("write an album, delete 1st song, update 2nd, insert 3rd, change album year", function(){
             var data={
-                artist_id:101,
-                name:'Bob Dylan',
-                albums:[{
-                    id:1,
-                    title:'Down in the Groove',
-                    year:1989,
-                    songs:[
-                        {song_num:2, song_name:"When Did You Leave Heaven?", "length": "2:15"},
-                        {song_num:3, song_name:"Sally Sue Brown"}, 
-                    ]
-                }]
+                id:1,
+                title:'Down in the Groove',
+                year:1989,
+                songs:[
+                    {song_num:2, song_name:"When Did You Leave Heaven?", "length": "2:15"},
+                    {song_num:3, song_name:"Sally Sue Brown"}, 
+                ]
             }
-            var queries = SqlTools.structuredData.sqlsWrite({artist_id:101}, struct_artist_production, data);
+            var queries = SqlTools.structuredData.sqlWrite({id:1}, struct_albums, data);
             return queries.reduce(function(promise, query){
                 return promise.then(function() {
                     return client.query(query).execute();
@@ -217,7 +260,7 @@ describe('sql-tools', function(){
                 expect(result.row.length).to.eql("2:15");
                 return client.query("select * from songs where album_id=$1 and song_num=$2",[1,3]).fetchUniqueRow();
             }).then(function(result){
-                expect(result.row).to.eql({album_id: 1, song_num:3, song_name:"Sally Sue Brown", length:null});
+                expect(result.row).to.eql({album_id: 1, song_num:3, song_name:"Sally Sue Brown", length:null, genre: null});
             });
         });
     });
