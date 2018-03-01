@@ -221,6 +221,57 @@ describe('sql-tools', function(){
                 expect(result.row).to.eql({album_id: 1, song_num:3, song_name:"Sally Sue Brown", length:null, genre: null});
             });
         });
+        it("write an artist, remove 2nd album, add another album 1st song, update 2nd, insert 3rd, change album year", function(){
+            var data={
+                id:101,
+                name:'Bob',
+                lastname:'Dylan',
+                albums:[{
+                    id:1,
+                    title:'Down in the Groove',
+                    year:1989,
+                    songs:[
+                        {song_num:2, song_name:"When Did You Leave Heaven?", "length": "2:15"},
+                        {song_num:3, song_name:"Sally Sue Brown"}, 
+                    ]
+                },{
+                    id:3,
+                    title:'Shadows in the Night',
+                    year:2015,
+                    songs:[
+                        {song_num:1, song_name:"I'm a Fool to Want You"},
+                        {song_num:2, song_name:"The Night We Called It a Day"},
+                        {song_num:3, song_name:"Stay With Me"},
+                        {song_num:4, song_name:"Autumn Leaves"},
+                        {song_num:5, song_name:"Why Try to Change Me Now"},
+                        {song_num:6, song_name:"Some Enchanted Evening"},
+                        {song_num:7, song_name:"Full Moon and Empty Arms"},
+                        {song_num:8, song_name:"Where Are You?"},
+                        {song_num:9, song_name:"What'll I Do"},
+                        {song_num:10, song_name:"That Lucky Old Sun"},
+                    ]
+                }]
+            }
+            var queries = SqlTools.structuredData.sqlWrite({id:101}, struct_artists, data);
+            return queries.reduce(function(promise, query){
+                return promise.then(function() {
+                    return client.query(query).execute();
+                });
+            }, Promise.resolve()).then(function(){
+                return client.query("select * from albums where id=$1",[2]).fetchOneRowIfExists();
+            }).then(function(result){
+                expect(result.rowCount).to.eql(0);
+                return client.query("select * from albums where id=$1",[3]).fetchOneRowIfExists();
+            }).then(function(result){
+                expect(result.rowCount).to.eql(1);
+                return client.query("select * from songs where album_id=$1",[3]).execute();
+            }).then(function(result){
+                expect(result.rowCount).to.eql(10);
+                return client.query("select * from songs where album_id=$1 and song_num=$2",[3,3]).fetchUniqueRow();
+            }).then(function(result){
+                expect(result.row).to.eql({album_id: 3, song_num:3, song_name:"Stay With Me", length:null, genre: null});
+            });
+        });
     });
   });
 });
