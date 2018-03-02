@@ -147,22 +147,22 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData, d
         data.forEach(function(elem){
             structuredData.pkFields.forEach(function(field){
                 if(elem[field.fieldName]){
-                    condition.push(field.fieldName + ' <> ' + elem[field.fieldName]);
+                    condition.push(SqlTools.quoteIdent(field.fieldName) + ' <> ' + SqlTools.quoteLiteral(elem[field.fieldName].toString()));
                 }else{
                     condition.push(
-                        field.fieldName + ' = ' + parentData[structuredData.fkFields.find(function(fkField){ 
+                        SqlTools.quoteIdent(field.fieldName) + ' = ' + SqlTools.quoteLiteral(parentData[structuredData.fkFields.find(function(fkField){ 
                             return fkField.source === field.fieldName
-                        }).target]
+                        }).target].toString())
                     );
                 }
             })
         })
         parentStructureData.pkFields.forEach(function(field){
             if(parentData[structuredData.fkFields.find(function(elem){ return elem.target === field.fieldName}).source]){
-                condition.push(field.fieldName + ' = ' + parentData[field.fieldName]);
+                condition.push(SqlTools.quoteIdent(field.fieldName) + ' = ' + SqlTools.quoteLiteral(parentData[field.fieldName].toString()));
             }
         });
-        queriesArray.push("delete from " + structuredData.tableName + " where " + condition.join(' and ') + ";");
+        queriesArray.push("delete from " + SqlTools.quoteIdent(structuredData.tableName) + " where " + condition.join(' and ') + ";");
     }
     return queriesArray
 }
@@ -199,14 +199,13 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(pk, structuredData, d
         });
         var where_expr = [];
         for(var i in pkFields){
-            where_expr.push(structuredData.tableName + '.' + SqlTools.quoteIdent(pkFields[i]) + '=' + SqlTools.quoteLiteral(pkValues[i]));
-            
+            where_expr.push(SqlTools.quoteIdent(structuredData.tableName) + '.' + SqlTools.quoteIdent(pkFields[i]) + '=' + SqlTools.quoteLiteral(pkValues[i]));
         }
         var query = `
-            insert into ` + structuredData.tableName + ` ( ` + fields.join(',') + `)
+            insert into ` + SqlTools.quoteIdent(structuredData.tableName) + ` ( ` + fields.join(',') + `)
                 values (` + SqlTools.quoteLiteralArray(values).join(',') + `)
-                on conflict (` + pkFields.join(',') + `)
-                do update set (` + fieldsWithoutPk.join(',') + `) = (` + SqlTools.quoteLiteralArray(valuesWithoutPk).join(',') + `)
+                on conflict (` + SqlTools.quoteIdentArray(pkFields).join(',') + `)
+                do update set (` + SqlTools.quoteIdentArray(fieldsWithoutPk).join(',') + `) = (` + SqlTools.quoteLiteralArray(valuesWithoutPk).join(',') + `)
                     where ` + where_expr.join(' and ') + `;`
         queriesArray.push(query);
         return queriesArray;
