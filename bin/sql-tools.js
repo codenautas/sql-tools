@@ -130,15 +130,15 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInf
     
 }
 
-SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData, data, parentData, parentStructureData, queriesArray){
+SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData, parentData, parentStructureData, queriesArray){
     if(structuredData.childTables && structuredData.childTables.length){
         structuredData.childTables.forEach(function(childTable){
             if(parentStructureData){
                 data.forEach(function(elem){
-                    queriesArray = SqlTools.structuredData.sqlsDeletes(pk, childTable, elem[childTable.tableName], elem, structuredData, queriesArray);
+                    queriesArray = SqlTools.structuredData.sqlsDeletes(elem[childTable.tableName], childTable, elem, structuredData, queriesArray);
                 })
             }else{
-                queriesArray = SqlTools.structuredData.sqlsDeletes(pk, childTable, data[childTable.tableName], data, structuredData, queriesArray);    
+                queriesArray = SqlTools.structuredData.sqlsDeletes(data[childTable.tableName], childTable, data, structuredData, queriesArray);    
             }
         });
     }
@@ -167,8 +167,8 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(pk, structuredData, d
     return queriesArray
 }
 
-SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(pk, structuredData, data, parentData, parentStructureData, queriesArray){
-    var upsertRecord = function upsertRecord(pk, structuredData, data, parentData, parentStructureData, queriesArray){
+SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData, parentData, parentStructureData, queriesArray){
+    var upsertRecord = function upsertRecord(structuredData, data, parentData, parentStructureData, queriesArray){
         var fields = [];
         var values = [];
         for(var key in data){
@@ -212,29 +212,29 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(pk, structuredData, d
     }
     if(data.length){
         data.forEach(function(elem){
-            queriesArray = upsertRecord(pk, structuredData, elem, parentData, parentStructureData, queriesArray)
+            queriesArray = upsertRecord(structuredData, elem, parentData, parentStructureData, queriesArray)
         });
     }else{
-        queriesArray = upsertRecord(pk, structuredData, data, parentData, parentStructureData, queriesArray);
+        queriesArray = upsertRecord(structuredData, data, parentData, parentStructureData, queriesArray);
     }
     if(structuredData.childTables && structuredData.childTables.length){
         structuredData.childTables.forEach(function(childTable){
             if(parentStructureData){
                 data.forEach(function(elem){
-                    queriesArray = SqlTools.structuredData.sqlsUpserts(pk, childTable, elem[childTable.tableName], elem, structuredData, queriesArray);
+                    queriesArray = SqlTools.structuredData.sqlsUpserts(elem[childTable.tableName], childTable, elem, structuredData, queriesArray);
                 })
             }else{
-                queriesArray = SqlTools.structuredData.sqlsUpserts(pk, childTable, data[childTable.tableName], data, structuredData, queriesArray);    
+                queriesArray = SqlTools.structuredData.sqlsUpserts(data[childTable.tableName], childTable, data, structuredData, queriesArray);    
             }
         });
     }
     return queriesArray
 }
 
-SqlTools.structuredData.sqlWrite = function sqlWrite(pk, structuredData, data){
-    return SqlTools.structuredData.sqlsDeletes(pk, structuredData, data, null, null, [])
+SqlTools.structuredData.sqlWrite = function sqlWrite(data, structuredData){
+    return SqlTools.structuredData.sqlsDeletes(data, structuredData, null, null, [])
     .concat(
-        SqlTools.structuredData.sqlsUpserts(pk, structuredData, data, null, null, [])
+        SqlTools.structuredData.sqlsUpserts(data, structuredData, null, null, [])
     );
 }
 module.exports=SqlTools;
