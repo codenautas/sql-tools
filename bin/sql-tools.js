@@ -70,11 +70,11 @@ SqlTools.olap.orderBy=function(sql, varsDef){
 }
 
 SqlTools.quoteIdent = function(dbObjectName){
-    return '"'+dbObjectName.replace(/"/g,'""')+'"';
+    return '"'+dbObjectName.toString().replace(/"/g,'""')+'"';
 }
 
 SqlTools.quoteLiteral = function(dbAnyValue){
-    return "'"+dbAnyValue.replace(/'/g,"''")+"'";
+    return dbAnyValue==null?"null":"'"+dbAnyValue.toString().replace(/'/g,"''")+"'";
 }
 
 SqlTools.quoteIdentArray = function(dbObjectNameArray){
@@ -147,19 +147,19 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData,
         data.forEach(function(elem){
             structuredData.pkFields.forEach(function(field){
                 if(elem[field.fieldName]){
-                    condition.push(SqlTools.quoteIdent(field.fieldName) + ' <> ' + SqlTools.quoteLiteral(elem[field.fieldName].toString()));
+                    condition.push(SqlTools.quoteIdent(field.fieldName) + ' <> ' + SqlTools.quoteLiteral(elem[field.fieldName]));
                 }else{
                     condition.push(
                         SqlTools.quoteIdent(field.fieldName) + ' = ' + SqlTools.quoteLiteral(parentData[structuredData.fkFields.find(function(fkField){ 
                             return fkField.source === field.fieldName
-                        }).target].toString())
+                        }).target])
                     );
                 }
             })
         })
         parentStructureData.pkFields.forEach(function(field){
             if(parentData[structuredData.fkFields.find(function(elem){ return elem.target === field.fieldName}).source]){
-                condition.push(SqlTools.quoteIdent(field.fieldName) + ' = ' + SqlTools.quoteLiteral(parentData[field.fieldName].toString()));
+                condition.push(SqlTools.quoteIdent(field.fieldName) + ' = ' + SqlTools.quoteLiteral(parentData[field.fieldName]));
             }
         });
         queriesArray.push("delete from " + SqlTools.quoteIdent(structuredData.tableName) + " where " + condition.join(' and ') + ";");
@@ -173,14 +173,14 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData,
         var values = [];
         for(var key in data){
             if(!Array.isArray(data[key])){
-                fields.push(key.toString());
-                values.push(data[key].toString());
+                fields.push(key);
+                values.push(data[key]);
             }
         }
         if(structuredData.fkFields){
             structuredData.fkFields.forEach(function(fkField){
                fields.push(fkField.source); 
-               values.push(parentData[fkField.target].toString());
+               values.push(parentData[fkField.target]);
             });
         }
         var pkFields = structuredData.pkFields.map(function(field){
@@ -193,7 +193,7 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData,
             var i = fieldsWithoutPk.indexOf(pkField);
             if(i !== -1){
                 fieldsWithoutPk.splice(i,1);
-                pkValues.push(valuesWithoutPk[i].toString());
+                pkValues.push(valuesWithoutPk[i]);
                 valuesWithoutPk.splice(i,1);
             }
         });
