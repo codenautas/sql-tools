@@ -167,68 +167,54 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData,
     return queriesArray
 }
 
-SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData, parentData, parentStructureData, queriesArray){
-    var upsertRecord = function upsertRecord(structuredData, data, parentData, parentStructureData, queriesArray){
-        var fields = [];
-        var values = [];
-        for(var key in data){
-            if(!Array.isArray(data[key])){
-                fields.push(key);
-                values.push(data[key]);
-            }
+SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData, parentData, parentStructureData){
+    var childQueries = [];
+    var fields = [];
+    var values = [];
+    for(var key in data){
+        var childStructuredData = structuredData.childTables.find(table=>table.tableName==key);
+        if(childStructuredData){
+            var childrenData = data[key];
+            childrenData.forEach(function(childData){
+                childQueries=childQueries.concat(SqlTools.structuredData.sqlsUpserts(childData, childStructuredData, data, structuredData))
+            })
+        }else{
+            fields.push(key);
+            values.push(data[key]);
         }
-        if(structuredData.fkFields){
-            structuredData.fkFields.forEach(function(fkField){
-               fields.push(fkField.source); 
-               values.push(parentData[fkField.target]);
-            });
-        }
-        var pkFields = structuredData.pkFields.map(function(field){
-            return field.fieldName;
-        });
-        var fieldsWithoutPk = fields.slice();
-        var valuesWithoutPk = values.slice();
-        var pkValues = [];
-        pkFields.forEach(function(pkField){
-            var i = fieldsWithoutPk.indexOf(pkField);
-            if(i !== -1){
-                fieldsWithoutPk.splice(i,1);
-                pkValues.push(valuesWithoutPk[i]);
-                valuesWithoutPk.splice(i,1);
-            }
-        });
-        var where_expr = [];
-        for(var i in pkFields){
-            where_expr.push(SqlTools.quoteIdent(structuredData.tableName) + '.' + SqlTools.quoteIdent(pkFields[i]) + '=' + SqlTools.quoteLiteral(pkValues[i]));
-        }
-        var query = `
-            insert into ` + SqlTools.quoteIdent(structuredData.tableName) + ` ( ` + fields.join(',') + `)
-                values (` + SqlTools.quoteLiteralArray(values).join(',') + `)
-                on conflict (` + SqlTools.quoteIdentArray(pkFields).join(',') + `)
-                do update set (` + SqlTools.quoteIdentArray(fieldsWithoutPk).join(',') + `) = (` + SqlTools.quoteLiteralArray(valuesWithoutPk).join(',') + `)
-                    where ` + where_expr.join(' and ') + `;`
-        queriesArray.push(query);
-        return queriesArray;
     }
-    if(data.length){
-        data.forEach(function(elem){
-            queriesArray = upsertRecord(structuredData, elem, parentData, parentStructureData, queriesArray)
-        });
-    }else{
-        queriesArray = upsertRecord(structuredData, data, parentData, parentStructureData, queriesArray);
-    }
-    if(structuredData.childTables && structuredData.childTables.length){
-        structuredData.childTables.forEach(function(childTable){
-            if(parentStructureData){
-                data.forEach(function(elem){
-                    queriesArray = SqlTools.structuredData.sqlsUpserts(elem[childTable.tableName], childTable, elem, structuredData, queriesArray);
-                })
-            }else{
-                queriesArray = SqlTools.structuredData.sqlsUpserts(data[childTable.tableName], childTable, data, structuredData, queriesArray);    
-            }
+    if(structuredData.fkFields){
+        structuredData.fkFields.forEach(function(fkField){
+            fields.push(fkField.source); 
+            values.push(parentData[fkField.target]);
         });
     }
-    return queriesArray
+    var pkFields = structuredData.pkFields.map(function(field){
+        return field.fieldName;
+    });
+    var fieldsWithoutPk = fields.slice();
+    var valuesWithoutPk = values.slice();
+    var pkValues = [];
+    pkFields.forEach(function(pkField){
+        var i = fieldsWithoutPk.indexOf(pkField);
+        if(i !== -1){
+            fieldsWithoutPk.splice(i,1);
+            pkValues.push(valuesWithoutPk[i]);
+            valuesWithoutPk.splice(i,1);
+        }
+    });
+    var where_expr = [];
+    for(var i in pkFields){
+        where_expr.push(SqlTools.quoteIdent(structuredData.tableName) + '.' + SqlTools.quoteIdent(pkFields[i]) + '=' + SqlTools.quoteLiteral(pkValues[i]));
+    }
+    var query = `
+        insert into ` + SqlTools.quoteIdent(structuredData.tableName) + ` ( ` + fields.join(',') + `)
+            values (` + SqlTools.quoteLiteralArray(values).join(',') + `)
+            on conflict (` + SqlTools.quoteIdentArray(pkFields).join(',') + `)
+            do update set (` + SqlTools.quoteIdentArray(fieldsWithoutPk).join(',') + `) = (` + SqlTools.quoteLiteralArray(valuesWithoutPk).join(',') + `)
+                where ` + where_expr.join(' and ') + `;`
+    childQueries.unshift(query);
+    return childQueries;
 }
 
 SqlTools.structuredData.sqlWrite = function sqlWrite(data, structuredData){
