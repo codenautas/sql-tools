@@ -117,7 +117,7 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInf
         return `|| jsonb_build_object('${childTable.tableName}',(${query.text}))`;
     }).join('');
     var select_string = `to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQueries} `;
-    select_string = parentStructure?`coalesce(jsonb_agg(`+select_string+`),'[]'::jsonb) `:select_string;
+    select_string = parentStructure?`coalesce(jsonb_agg(${select_string}${structuredData.pkFields?" order by "+structuredData.pkFields.map(function(fieldDef){ return fieldDef.fieldName; }).join(','):''}),'[]'::jsonb) `:select_string;
     return {
         text: 
             `

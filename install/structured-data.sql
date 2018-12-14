@@ -52,5 +52,5 @@ insert into albums
   values (1, 101, 'Down in the Groove', 1988, 'sonymusic'), (2, 101, 'Tempest', 2012, 'wb');
   
 insert into songs
-  values (1, 1, 'Let''s Stick Together', null, 'rock'),
-         (1, 2, 'When Did You Leave Heaven?', null, 'blues');
+  values (1, 2, 'When Did You Leave Heaven?', null, 'blues'),
+         (1, 1, 'Let''s Stick Together', null, 'rock');

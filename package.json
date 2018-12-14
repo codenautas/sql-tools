@@ -1,7 +1,7 @@
 {
   "name": "sql-tools",
   "description": "olap for sql non-olap engines / and other tools",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/sql-tools",
@@ -16,9 +16,9 @@
   "devDependencies": {
     "expect.js": "~0.3.1",
     "istanbul": "~0.4.5",
-    "mocha": "~5.0.1",
-    "mini-tools": "~0.3.22",
-    "pg-promise-strict": "~0.4.6"
+    "mocha": "~5.2.0",
+    "mini-tools": "~1.0.4",
+    "pg-promise-strict": "~0.4.16"
   },
   "engines": {
     "node": ">= 0.8.0"
