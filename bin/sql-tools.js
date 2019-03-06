@@ -1,6 +1,28 @@
 "use strict";
 
+(function codenautasModuleDefinition(root, name, factory) {
+    /* global define */
+    /* istanbul ignore next */
+    if(typeof root.globalModuleName !== 'string'){
+        root.globalModuleName = name;
+    }
+    /* istanbul ignore next */
+    if(typeof exports === 'object' && typeof module === 'object'){
+        module.exports = factory();
+    }else if(typeof define === 'function' && define.amd){
+        define(factory);
+    }else if(typeof exports === 'object'){
+        exports[root.globalModuleName] = factory();
+    }else{
+        root[root.globalModuleName] = factory();
+    }
+    root.globalModuleName = null;
+})(/*jshint -W040 */this, 'SqlTools', function() {
+/*jshint +W040 */
+
+/*jshint -W004 */
 var SqlTools={};
+/*jshint +W004 */
 
 SqlTools.defaults={
     aggLabel: '=TOTAL='
@@ -223,4 +245,7 @@ SqlTools.structuredData.sqlWrite = function sqlWrite(data, structuredData){
         SqlTools.structuredData.sqlsUpserts(data, structuredData, null, null, [])
     );
 }
-module.exports=SqlTools;
+
+return SqlTools;
+
+})
