@@ -194,7 +194,9 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData,
     var fields = [];
     var values = [];
     for(var key in data){
-        var childStructuredData = structuredData.childTables.find(table=>table.tableName==key);
+        var childStructuredData = structuredData.childTables.find(function(table){
+            return table.tableName==key
+        });
         if(childStructuredData){
             var childrenData = data[key];
             childrenData.forEach(function(childData){
