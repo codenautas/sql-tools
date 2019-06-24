@@ -168,7 +168,7 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData,
         var condition = [];
         data.forEach(function(elem){
             structuredData.pkFields.forEach(function(field){
-                if(elem[field.fieldName]){
+                if(elem[field.fieldName] != null){
                     condition.push(SqlTools.quoteIdent(field.fieldName) + ' <> ' + SqlTools.quoteLiteral(elem[field.fieldName]));
                 }else{
                     condition.push(
@@ -189,7 +189,7 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData,
     return queriesArray
 }
 
-SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData, parentData, parentStructureData){
+SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData, parentData, parentStructureData, inheritedPks){
     var childQueries = [];
     var fields = [];
     var values = [];
@@ -200,7 +200,12 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData,
         if(childStructuredData){
             var childrenData = data[key];
             childrenData.forEach(function(childData){
-                childQueries=childQueries.concat(SqlTools.structuredData.sqlsUpserts(childData, childStructuredData, data, structuredData))
+                structuredData.pkFields.forEach(function(pkField) {
+                    if (!inheritedPks[pkField.fieldName]){
+                        inheritedPks[pkField.fieldName] = data[pkField.fieldName]
+                    }
+                });                
+                childQueries=childQueries.concat(SqlTools.structuredData.sqlsUpserts(childData, childStructuredData, data, structuredData, inheritedPks))
             })
         }else{
             fields.push(key);
@@ -210,7 +215,7 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData,
     if(structuredData.fkFields){
         structuredData.fkFields.forEach(function(fkField){
             fields.push(fkField.source); 
-            values.push(parentData[fkField.target]);
+            values.push(inheritedPks[fkField.target]);
         });
     }
     var pkFields = structuredData.pkFields.map(function(field){
@@ -244,7 +249,7 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structuredData,
 SqlTools.structuredData.sqlWrite = function sqlWrite(data, structuredData){
     return SqlTools.structuredData.sqlsDeletes(data, structuredData, null, null, [])
     .concat(
-        SqlTools.structuredData.sqlsUpserts(data, structuredData, null, null, [])
+        SqlTools.structuredData.sqlsUpserts(data, structuredData, null, null, [], {})
     );
 }
 
