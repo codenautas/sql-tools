@@ -152,39 +152,32 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInf
     
 }
 
-SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData, parentData, parentStructureData, queriesArray){
+SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData, queriesArray, parentPks){
     if(structuredData.childTables && structuredData.childTables.length){
         structuredData.childTables.forEach(function(childTable){
-            if(parentStructureData){
-                data.forEach(function(elem){
-                    queriesArray = SqlTools.structuredData.sqlsDeletes(elem[childTable.tableName], childTable, elem, structuredData, queriesArray);
-                })
-            }else{
-                queriesArray = SqlTools.structuredData.sqlsDeletes(data[childTable.tableName], childTable, data, structuredData, queriesArray);    
-            }
-        });
-    }
-    if(parentStructureData && data!==undefined){
-        var condition = [];
-        data.forEach(function(elem){
-            structuredData.pkFields.forEach(function(field){
-                if(elem[field.fieldName] != null){
-                    condition.push(SqlTools.quoteIdent(field.fieldName) + ' <> ' + SqlTools.quoteLiteral(elem[field.fieldName]));
-                }else{
-                    condition.push(
-                        SqlTools.quoteIdent(field.fieldName) + ' = ' + SqlTools.quoteLiteral(parentData[structuredData.fkFields.find(function(fkField){ 
-                            return fkField.source === field.fieldName
-                        }).target])
-                    );
+            var childPksIndex={};
+            Object.assign(childPksIndex, parentPks);
+            var conditionChild=childTable.fkFields.map(function(pair){
+                if(data[pair.target]!=null){
+                    childPksIndex[pair.source]=data[pair.target];
                 }
-            })
-        })
-        parentStructureData.pkFields.forEach(function(field){
-            if(parentData[structuredData.fkFields.find(function(elem){ return elem.target === field.fieldName}).source]){
-                condition.push(SqlTools.quoteIdent(field.fieldName) + ' = ' + SqlTools.quoteLiteral(parentData[field.fieldName]));
-            }
+                return pair.source + ' = ' + SqlTools.quoteLiteral(childPksIndex[pair.source])
+            });
+            (data[childTable.tableName]||[]).forEach(function(childData){
+                queriesArray = SqlTools.structuredData.sqlsDeletes(childData, childTable, queriesArray, childPksIndex);    
+            });
+            var parentPk=childTable.pkFields.filter(function(field){
+                return !childPksIndex[field.fieldName];
+            }).map(function(field){ return field.fieldName; });
+            queriesArray.push(
+                "delete from " + SqlTools.quoteIdent(childTable.tableName) + 
+                " where " + conditionChild.join(' and ') + 
+                " and " + (parentPk.length!=1?'(':'') + parentPk.join(', ') + (parentPk.length!=1?')':'') + `
+                 not in (select ${parentPk.join(', ')} from jsonb_populate_recordset(null::${SqlTools.quoteIdent(childTable.tableName)}, 
+                    ${SqlTools.quoteLiteral(JSON.stringify(data[childTable.tableName]))}::jsonb
+                    ));`
+            );
         });
-        queriesArray.push("delete from " + SqlTools.quoteIdent(structuredData.tableName) + " where " + condition.join(' and ') + ";");
     }
     return queriesArray
 }
@@ -249,7 +242,7 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structureData, 
 }
 
 SqlTools.structuredData.sqlWrite = function sqlWrite(data, structuredData){
-    return SqlTools.structuredData.sqlsDeletes(data, structuredData, null, null, [])
+    return SqlTools.structuredData.sqlsDeletes(data, structuredData,[], {})
     .concat(
         SqlTools.structuredData.sqlsUpserts(data, structuredData, null, null, [], {})
     );

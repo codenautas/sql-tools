@@ -34,3 +34,11 @@ insert into songs (select source.*
 select *
   from songs;
   
+delete from departamentos
+  where pais = 'ar' and provincia = 'B'
+    and departamento not in (select departamento from jsonb_populate_recordset(null::departamentos, '[
+                    {"departamento": "BUE001", "nombre":"este"},
+                    {"departamento": "BUE002", "nombre":"este"}
+                    ]'::jsonb
+                    ));
+

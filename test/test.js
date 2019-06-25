@@ -309,11 +309,32 @@ describe('sql-tools', function(){
             };
             var queries = SqlTools.structuredData.sqlWrite(data, struct_paises);
             console.log(queries.join('\n'));
-            expect(queries[0]).to.eql(`delete from "departamentos" where "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE001' and "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE002' and "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE003' and "provincia" = 'B';`)
+            // expect(queries[0]).to.eql(`delete from "departamentos" where "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE001' and "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE002' and "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE003' and "provincia" = 'B';`)
             for(var query of queries){
                 console.log('*********',query)
                 await client.query(query).execute();
             }
+        });
+        it("write Buenos Aires con un departamento menos", async function(){
+            var data={
+                pais:'ar',
+                nombre:'argentina',
+                provincias:[
+                    {provincia: 'A', nombre:'Salta'},
+                    {provincia: 'B', nombre:'Buenos Aires', departamentos:[
+                        {departamento:'BUE001', nombre:'Adolfo Alsina'},
+                        {departamento:'BUE002', nombre:'Adolfo González Chaves'}
+                    ]},
+                ]
+            };
+            var queries = SqlTools.structuredData.sqlWrite(data, struct_paises);
+            console.log(queries.join('\n'));
+            for(var query of queries){
+                console.log('*********',query)
+                await client.query(query).execute();
+            }
+            var result = await client.query('select count(*) from departamentos where pais = $$ar$$ and provincia = $$B$$').fetchUniqueValue();
+            expect(result.value).to.eql(2);
         });
     });
   });
