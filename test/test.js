@@ -10,6 +10,9 @@ var MiniTools = require('mini-tools');
 
 var changing = require('best-globals').changing;
 
+pg.log = pg.logLastError;
+
+
 describe('sql-tools', function(){
   describe('olap',function(){
     describe('cube',function(){
@@ -109,7 +112,7 @@ describe('sql-tools', function(){
     var struct_artists={
         tableName:'artists',
         pkFields:[{fieldName:'id'}],
-        foreignKeys:[],
+        fkFields:[],
         childTables:[
             changing(struct_albums,{fkFields: [{target:'id', source:'artist_id'}]})
         ]
@@ -117,9 +120,32 @@ describe('sql-tools', function(){
     var struct_record_labels={
         tableName:'record_labels',
         pkFields:[{fieldName:'record_label'}],
-        foreignKeys:[],
+        fkFields:[],
         childTables:[
             changing(struct_albums,{fkFields: ['record_label']})
+        ]
+    };
+    var struct_departamentos={
+        tableName:'departamentos',
+        pkFields:[{fieldName:'pais'},{fieldName:'provincia'},{fieldName:'departamento'}],
+        fkFields:[],
+        childTables:[
+        ]
+    };
+    var struct_provincias={
+        tableName:'provincias',
+        pkFields:[{fieldName:'pais'},{fieldName:'provincia'}],
+        fkFields:[],
+        childTables:[
+            changing(struct_departamentos,{fkFields: [{target:'pais', source:'pais'},{target:'provincia', source:'provincia'}]})
+        ]
+    };
+    var struct_paises={
+        tableName:'paises',
+        pkFields:[{fieldName:'pais'}],
+        foreignKeys:[],
+        childTables:[
+            changing(struct_provincias,{fkFields: [{target:'pais', source:'pais'}]})
         ]
     };
     before(function(){
@@ -205,6 +231,7 @@ describe('sql-tools', function(){
                 ]
             }
             var queries = SqlTools.structuredData.sqlWrite(data, struct_albums);
+            console.log(queries.join('\n'));
             return queries.reduce(function(promise, query){
                 return promise.then(function() {
                     return client.query(query).execute();
@@ -221,7 +248,7 @@ describe('sql-tools', function(){
                 expect(result.row).to.eql({album_id: 1, song_num:3, song_name:"Sally Sue Brown", length:null, genre: null});
             });
         });
-        it("write an artist, remove 2nd album, add another album 1st song, update 2nd, insert 3rd, change album year", function(){
+        it("write an artist, remove 2nd album, add another album 1st song, update 2nd, insert 3rd, change album year", async function(){
             var data={
                 id:101,
                 name:'Bob',
@@ -253,24 +280,40 @@ describe('sql-tools', function(){
                 }]
             }
             var queries = SqlTools.structuredData.sqlWrite(data, struct_artists);
-            return queries.reduce(function(promise, query){
-                return promise.then(function() {
-                    return client.query(query).execute();
-                });
-            }, Promise.resolve()).then(function(){
-                return client.query("select * from albums where id=$1",[2]).fetchOneRowIfExists();
-            }).then(function(result){
-                expect(result.rowCount).to.eql(0);
-                return client.query("select * from albums where id=$1",[3]).fetchOneRowIfExists();
-            }).then(function(result){
-                expect(result.rowCount).to.eql(1);
-                return client.query("select * from songs where album_id=$1",[3]).execute();
-            }).then(function(result){
-                expect(result.rowCount).to.eql(10);
-                return client.query("select * from songs where album_id=$1 and song_num=$2",[3,3]).fetchUniqueRow();
-            }).then(function(result){
-                expect(result.row).to.eql({album_id: 3, song_num:3, song_name:"Stay With Me", length:null, genre: null});
-            });
+            console.log(queries.join('\n'))
+            for(var query of queries){
+                console.log('*********',query)
+                await client.query(query).execute();
+            }
+            var result = await client.query("select * from albums where id=$1",[2]).fetchOneRowIfExists();
+            expect(result.rowCount).to.eql(0);
+            result = await client.query("select * from albums where id=$1",[3]).fetchOneRowIfExists();
+            expect(result.rowCount).to.eql(1);
+            result = await client.query("select * from songs where album_id=$1",[3]).execute();
+            expect(result.rowCount).to.eql(10);
+            result = await client.query("select * from songs where album_id=$1 and song_num=$2",[3,3]).fetchUniqueRow();
+            expect(result.row).to.eql({album_id: 3, song_num:3, song_name:"Stay With Me", length:null, genre: null});
+        });
+        it("write paises", async function(){
+            var data={
+                pais:'ar',
+                nombre:'argentina',
+                provincias:[
+                    {provincia: 'A', nombre:'Salta'},
+                    {provincia: 'B', nombre:'Buenos Aires', departamentos:[
+                        {departamento:'BUE001', nombre:'Adolfo Alsina'},
+                        {departamento:'BUE002', nombre:'Adolfo González Chávez'},
+                        {departamento:'BUE003', nombre:'Alberti'}
+                    ]},
+                ]
+            };
+            var queries = SqlTools.structuredData.sqlWrite(data, struct_paises);
+            console.log(queries.join('\n'));
+            expect(queries[0]).to.eql(`delete from "departamentos" where "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE001' and "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE002' and "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE003' and "provincia" = 'B';`)
+            for(var query of queries){
+                console.log('*********',query)
+                await client.query(query).execute();
+            }
         });
     });
   });

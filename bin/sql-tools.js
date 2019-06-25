@@ -29,9 +29,9 @@ SqlTools.defaults={
 };
 
 SqlTools.places={
-        left:{groupby:true},
-        top :{groupby:true},
-        data:{aggregate:true}
+    left:{groupby:true},
+    top :{groupby:true},
+    data:{aggregate:true}
 };
 
 SqlTools.olap={};
@@ -164,7 +164,7 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData,
             }
         });
     }
-    if(parentStructureData){
+    if(parentStructureData && data!==undefined){
         var condition = [];
         data.forEach(function(elem){
             structuredData.pkFields.forEach(function(field){
@@ -197,15 +197,17 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structureData, 
         var childStructuredData = structureData.childTables.find(function(table){
             return table.tableName==key
         });
+        var inheritedPksForChild={};
+        Object.assign(inheritedPksForChild, inheritedPks);
         if(childStructuredData){
             var childrenData = data[key];
             childrenData.forEach(function(childData){
                 structureData.pkFields.forEach(function(pkField) {
-                    if (!inheritedPks[pkField.fieldName]){
-                        inheritedPks[pkField.fieldName] = data[pkField.fieldName]
+                    if (data[pkField.fieldName] != null){
+                        inheritedPksForChild[pkField.fieldName] = data[pkField.fieldName]
                     }
                 });                
-                childQueries=childQueries.concat(SqlTools.structuredData.sqlsUpserts(childData, childStructuredData, data, structureData, inheritedPks))
+                childQueries=childQueries.concat(SqlTools.structuredData.sqlsUpserts(childData, childStructuredData, data, structureData, inheritedPksForChild))
             })
         }else{
             fields.push(key);

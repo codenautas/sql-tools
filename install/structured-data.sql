@@ -54,3 +54,24 @@ insert into albums
 insert into songs
   values (1, 2, 'When Did You Leave Heaven?', null, 'blues'),
          (1, 1, 'Let''s Stick Together', null, 'rock');
+
+create table paises(
+  pais text,
+  nombre text,
+  primary key (pais)
+);
+
+create table provincias(
+  pais text,
+  provincia text,
+  nombre text,
+  primary key(pais, provincia)
+);
+
+create table departamentos(
+  pais text,
+  provincia text,
+  departamento text,
+  nombre text,
+  primary key(pais, provincia, departamento)
+);
