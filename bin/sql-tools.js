@@ -36,6 +36,11 @@ SqlTools.places={
 
 SqlTools.olap={};
 
+/** @param {string[]} elements */
+function join1wp(elements){
+    return (elements.length!=1?'(':'') + elements.join(', ') + (elements.length!=1?')':'');
+}
+
 function coalesce(){
     var i=0;
     while(i<arguments.length-1 && arguments[i]==null) i++;
@@ -172,7 +177,7 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData,
             queriesArray.push(
                 "delete from " + SqlTools.quoteIdent(childTable.tableName) + 
                 " where " + conditionChild.join(' and ') + 
-                " and " + (parentPk.length!=1?'(':'') + parentPk.join(', ') + (parentPk.length!=1?')':'') + `
+                " and " + join1wp(parentPk) + `
                  not in (select ${parentPk.join(', ')} from jsonb_populate_recordset(null::${SqlTools.quoteIdent(childTable.tableName)}, 
                     ${SqlTools.quoteLiteral(JSON.stringify(data[childTable.tableName]))}::jsonb
                     ));`
@@ -232,11 +237,11 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structureData, 
         where_expr.push(SqlTools.quoteIdent(structureData.tableName) + '.' + SqlTools.quoteIdent(pkFields[i]) + '=' + SqlTools.quoteLiteral(pkValues[i]));
     }
     var query = `
-        insert into ` + SqlTools.quoteIdent(structureData.tableName) + ` ( ` + fields.join(',') + `)
-            values (` + SqlTools.quoteLiteralArray(values).join(',') + `)
-            on conflict (` + SqlTools.quoteIdentArray(pkFields).join(',') + `)
-            do update set (` + SqlTools.quoteIdentArray(fieldsWithoutPk).join(',') + `) = (` + SqlTools.quoteLiteralArray(valuesWithoutPk).join(',') + `)
-                where ` + where_expr.join(' and ') + `;`
+        insert into ${SqlTools.quoteIdent(structureData.tableName)} (${fields.join(',')})
+            values (${SqlTools.quoteLiteralArray(values).join(',')})
+            on conflict (${SqlTools.quoteIdentArray(pkFields).join(',')})
+            do update set ${join1wp(SqlTools.quoteIdentArray(fieldsWithoutPk))} = ${join1wp(SqlTools.quoteLiteralArray(valuesWithoutPk))}
+                where ${where_expr.join(' and ')};`
     childQueries.unshift(query);
     return childQueries;
 }

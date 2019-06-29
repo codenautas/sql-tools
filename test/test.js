@@ -231,7 +231,6 @@ describe('sql-tools', function(){
                 ]
             }
             var queries = SqlTools.structuredData.sqlWrite(data, struct_albums);
-            console.log(queries.join('\n'));
             return queries.reduce(function(promise, query){
                 return promise.then(function() {
                     return client.query(query).execute();
@@ -280,9 +279,7 @@ describe('sql-tools', function(){
                 }]
             }
             var queries = SqlTools.structuredData.sqlWrite(data, struct_artists);
-            console.log(queries.join('\n'))
             for(var query of queries){
-                console.log('*********',query)
                 await client.query(query).execute();
             }
             var result = await client.query("select * from albums where id=$1",[2]).fetchOneRowIfExists();
@@ -308,10 +305,8 @@ describe('sql-tools', function(){
                 ]
             };
             var queries = SqlTools.structuredData.sqlWrite(data, struct_paises);
-            console.log(queries.join('\n'));
             // expect(queries[0]).to.eql(`delete from "departamentos" where "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE001' and "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE002' and "pais" = 'ar' and "provincia" = 'B' and "departamento" <> 'BUE003' and "provincia" = 'B';`)
             for(var query of queries){
-                console.log('*********',query)
                 await client.query(query).execute();
             }
         });
@@ -328,9 +323,7 @@ describe('sql-tools', function(){
                 ]
             };
             var queries = SqlTools.structuredData.sqlWrite(data, struct_paises);
-            console.log(queries.join('\n'));
             for(var query of queries){
-                console.log('*********',query)
                 await client.query(query).execute();
             }
             var result = await client.query('select count(*) from departamentos where pais = $$ar$$ and provincia = $$B$$').fetchUniqueValue();

@@ -1,7 +1,7 @@
 {
   "name": "sql-tools",
   "description": "olap for sql non-olap engines / and other tools",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/sql-tools",
@@ -25,8 +25,8 @@
   },
   "scripts": {
     "test": "mocha --reporter spec --bail --check-leaks --globals json4allRegisteredTypes test/",
-    "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
-    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks --globals json4allRegisteredTypes test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks --globals json4allRegisteredTypes test/",
     "start": "node example/server.js"
   },
   "files": [
