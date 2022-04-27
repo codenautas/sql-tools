@@ -236,12 +236,14 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structureData, 
     for(var i in pkFields){
         where_expr.push(SqlTools.quoteIdent(structureData.tableName) + '.' + SqlTools.quoteIdent(pkFields[i]) + '=' + SqlTools.quoteLiteral(pkValues[i]));
     }
+    var doUpdate = ()=>`do update set ( ${SqlTools.quoteIdentArray(fieldsWithoutPk).join(',')} ) = 
+    ${fieldsWithoutPk.length == 1?'row':''} ( ${SqlTools.quoteLiteralArray(valuesWithoutPk).join(',')} )
+        where ${where_expr.join(' and ')}`
     var query = `
-        insert into ${SqlTools.quoteIdent(structureData.tableName)} (${fields.join(',')})
-            values (${SqlTools.quoteLiteralArray(values).join(',')})
-            on conflict (${SqlTools.quoteIdentArray(pkFields).join(',')})
-            do update set ${join1wp(SqlTools.quoteIdentArray(fieldsWithoutPk))} = ${join1wp(SqlTools.quoteLiteralArray(valuesWithoutPk))}
-                where ${where_expr.join(' and ')};`
+        insert into ${SqlTools.quoteIdent(structureData.tableName)}  ( ${fields.join(',')} )
+            values ( ${SqlTools.quoteLiteralArray(values).join(',')} )
+            on conflict ( ${SqlTools.quoteIdentArray(pkFields).join(',')} )
+            ${(fieldsWithoutPk.length == 0)?' do nothing':doUpdate()} ;`
     childQueries.unshift(query);
     return childQueries;
 }
