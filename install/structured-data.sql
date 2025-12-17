@@ -1,3 +1,4 @@
+set role to test_user;
 drop schema if exists sd cascade; 
 create schema sd; 
 set search_path = sd;
