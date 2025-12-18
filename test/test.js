@@ -302,7 +302,10 @@ describe('sql-tools', function(){
             for(var query of queries){
                 await client.query(query).execute();
             }
-            expect(queries[0].replace(/[\r\n]+/g, '').replace(/ {2,}/g, ' ').trim()).to.eql(`delete from "departamentos" where pais = 'ar' and provincia = 'A' and departamento not in (select departamento from jsonb_populate_recordset(null::"departamentos", null::jsonb));`)
+            const deleteQuery = queries[0]
+                .replace(/[\r\n]+/g, '') //saca saltos de linea
+                .replace(/ {2,}/g, ' '); //saca espacios extras
+            expect(deleteQuery).to.eql(`delete from "departamentos" where pais = 'ar' and provincia = 'A' and departamento not in (select departamento from jsonb_populate_recordset(null::"departamentos", null::jsonb));`)
         });
         it("write Buenos Aires con un departamento menos", async function(){
             var data={
