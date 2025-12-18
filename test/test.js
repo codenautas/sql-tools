@@ -304,7 +304,8 @@ describe('sql-tools', function(){
             }
             const deleteQuery = queries[0]
                 .replace(/[\r\n]+/g, '') //saca saltos de linea
-                .replace(/ {2,}/g, ' '); //saca espacios extras
+                .replace(/ {2,}/g, ' ') //saca espacios extras
+                .trim();
             expect(deleteQuery).to.eql(`delete from "departamentos" where pais = 'ar' and provincia = 'A' and departamento not in (select departamento from jsonb_populate_recordset(null::"departamentos", null::jsonb));`)
         });
         it("write Buenos Aires con un departamento menos", async function(){
