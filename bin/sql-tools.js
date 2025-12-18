@@ -178,9 +178,8 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData,
                 "delete from " + SqlTools.quoteIdent(childTable.tableName) + 
                 " where " + conditionChild.join(' and ') + 
                 " and " + join1wp(parentPk) + `
-                 not in (select ${parentPk.join(', ')} from jsonb_populate_recordset(null::${SqlTools.quoteIdent(childTable.tableName)}, 
-                    ${SqlTools.quoteLiteral(JSON.stringify(data[childTable.tableName]))}::jsonb
-                    ));`
+                not in (select ${parentPk.join(', ')} from jsonb_populate_recordset(null::${SqlTools.quoteIdent(childTable.tableName)}, 
+                    ${SqlTools.quoteLiteral(JSON.stringify(data[childTable.tableName]))}::jsonb));`
             );
         });
     }
