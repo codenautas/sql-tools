@@ -276,10 +276,15 @@ describe('sql-tools', function(){
             for(var query of queries){
                 await client.query(query).execute();
             }
-            var result = await client.query("select * from albums where id=$1",[2]).fetchOneRowIfExists();
-            expect(result.rowCount).to.eql(0);
+            var result 
+            result = await client.query("select * from albums where id=$1",[2]).fetchOneRowIfExists();
+            expect(result.rowCount).to.eql(0); // album 2 fue borrado
             result = await client.query("select * from albums where id=$1",[3]).fetchOneRowIfExists();
-            expect(result.rowCount).to.eql(1);
+            expect(result.row.title).to.eql("Shadows in the Night");
+            expect(result.row.year).to.eql(2015);
+            result = await client.query("select * from albums where id=$1",[1]).fetchOneRowIfExists();
+            expect(result.row.title).to.eql("Down in the Groove");
+            expect(result.row.year).to.eql(1989);
             result = await client.query("select * from songs where album_id=$1",[3]).execute();
             expect(result.rowCount).to.eql(10);
             result = await client.query("select * from songs where album_id=$1 and song_num=$2",[3,3]).fetchUniqueRow();
