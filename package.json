@@ -4,7 +4,10 @@
   "version": "0.1.4",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
-  "repository": "codenautas/sql-tools",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codenautas/sql-tools.git"
+  },
   "contributors": [
     {
       "name": "Emilio Platzer",
