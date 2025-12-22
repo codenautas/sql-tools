@@ -42,7 +42,8 @@ insert into artists
 
 insert into genres
   values ('rock', 'Rock'),
-         ('blues', 'Blues');
+         ('blues', 'Blues'),
+         ('cumbia', 'Cumbia');
          
 insert into record_labels
   values ('sonymusic', 'Sony Music'),
@@ -50,11 +51,15 @@ insert into record_labels
          ('wb', 'Warner Bros');
 
 insert into albums
-  values (1, 101, 'Down in the Groove', 1988, 'sonymusic'), (2, 101, 'Tempest', 2012, 'wb');
+  values (1, 101, 'Down in the Groove', 1988, 'sonymusic'), (2, 101, 'Tempest', 2012, 'wb'), 
+  (4, 102, 'Pupurri', 1971, 'sonymusic');
   
 insert into songs
   values (1, 2, 'When Did You Leave Heaven?', null, 'blues'),
-         (1, 1, 'Let''s Stick Together', null, 'rock');
+         (1, 1, 'Let''s Stick Together', null, 'rock'),
+         (4, 1, 'La bolsa', '1:00', 'rock'),
+         (4, 2, 'Pollera Amarilla', '2:00', 'cumbia'),
+         (4, 3, 'Ocho cuarenta', null, null);
 
 create table paises(
   pais text,

@@ -171,15 +171,9 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData,
             (data[childTable.tableName]||[]).forEach(function(childData){
                 queriesArray = SqlTools.structuredData.sqlsDeletes(childData, childTable, queriesArray, childPksIndex);    
             });
-            var parentPk=childTable.pkFields.filter(function(field){
-                return !childPksIndex[field.fieldName];
-            }).map(function(field){ return field.fieldName; });
             queriesArray.push(`
                 delete from ${SqlTools.quoteIdent(childTable.tableName)} 
-                where ${conditionChild.join(' and ')} and ${join1wp(parentPk)}
-                not in (select ${parentPk.join(', ')} 
-                    from jsonb_populate_recordset(null::${SqlTools.quoteIdent(childTable.tableName)}, 
-                    ${SqlTools.quoteLiteral(JSON.stringify(data[childTable.tableName]))}::jsonb));`
+                where ${conditionChild.join(' and ')}`
             );
         });
     }

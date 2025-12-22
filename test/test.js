@@ -311,7 +311,7 @@ describe('sql-tools', function(){
                 .replace(/[\r\n]+/g, '') //saca saltos de linea
                 .replace(/ {2,}/g, ' ') //saca espacios extras
                 .trim();
-            expect(deleteQuery).to.eql(`delete from "departamentos" where pais = 'ar' and provincia = 'A' and departamento not in (select departamento from jsonb_populate_recordset(null::"departamentos", null::jsonb));`)
+            expect(deleteQuery).to.eql(`delete from "departamentos" where pais = 'ar' and provincia = 'A'`)
         });
         it("write Buenos Aires con un departamento menos", async function(){
             var data={
@@ -331,6 +331,45 @@ describe('sql-tools', function(){
             }
             var result = await client.query('select count(*) from departamentos where pais = $$ar$$ and provincia = $$B$$').fetchUniqueValue();
             expect(result.value).to.eql(2);
+        });
+        it("Borrado previo a la grabación", async function(){ 
+            const album_id = 4;          
+            var data={
+                id:album_id,
+                title:'Ram',
+                year:1971,
+                songs:[
+                    {song_num:1, song_name: 'La bolsa', length: '1:00', genre: 'rock'},
+                    // {song_num:2, song_name: 'Pollera Amarilla', length: '2:00', genre: 'cumbia'}, // se borra esta cancion
+                    // las siguientes canciones se reordenan y toman nuevo id para que no queden espacios
+                    // {song_num:3, song_name: 'Ocho cuarenta'}
+                    {song_num:2, song_name: 'Ocho cuarenta'}
+                ]
+            }
+            var queries = SqlTools.structuredData.sqlWrite(data, struct_albums);
+            for(var query of queries){
+                await client.query(query).execute();
+            }
+            // canción 1 sigue siendo 1
+            var result = await client.query("select * from songs where album_id=$1 and song_num=$2",[album_id,1]).fetchOneRowIfExists();
+            expect(result.row.song_name).to.eql('La bolsa');
+            expect(result.row.length).to.eql('1:00');
+            expect(result.row.genre).to.eql('rock');
+            
+            // la cancion 2 fue borrada
+            var result = await client.query("select * from songs where album_id=$1",[album_id]).execute();
+            expect(result.rowCount).to.eql(2); // quedan 4 canciones
+            
+            // cancion que era 3 ahroa es 2
+            var result = await client.query("select * from songs where album_id=$1 and song_num=$2",[album_id,2]).fetchOneRowIfExists();
+            expect(result.rowCount).to.eql(1); 
+            expect(result.row.song_name).to.eql('Ocho cuarenta');
+            expect(result.row.length).to.eql(null); // la canción que era 3 no tenía duración
+            expect(result.row.genre).to.eql(null); // la canción que era 3 no tenía género
+
+            // cancion 3 ya no existe
+            var result = await client.query("select * from songs where album_id=$1 and song_num=$2",[album_id,3]).fetchOneRowIfExists();
+            expect(result.rowCount).to.eql(0);
         });
     });
   });
