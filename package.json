@@ -23,7 +23,7 @@
     "istanbul": "~0.4.5",
     "mini-tools": "~1.13.4",
     "mocha": "~11.7.5",
-    "pg-promise-strict": "~1.4.3"
+    "pg-promise-strict": "~1.4.5"
   },
   "engines": {
     "node": ">= 0.8.0"

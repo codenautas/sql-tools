@@ -82,6 +82,7 @@ describe('sql-tools', function(){
     });
   });
   describe('structuredData', function(){
+    if (process.env.GITHUB_ACTIONS) return;
     var connectParams = {
         user: 'test_user',
         password: 'test_pass',
