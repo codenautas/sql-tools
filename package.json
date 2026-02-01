@@ -1,7 +1,7 @@
 {
   "name": "sql-tools",
   "description": "olap for sql non-olap engines / and other tools",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": {
