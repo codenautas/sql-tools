@@ -16,15 +16,15 @@
   ],
   "main": "bin/sql-tools.js",
   "dependencies": {
-    "type-store": "^0.6.3"
+    "type-store": "^0.6.4"
   },
   "devDependencies": {
     "expect.js": "^0.3.1",
     "istanbul": "^0.4.5",
-    "mini-tools": "^1.13.11",
+    "mini-tools": "^1.13.12",
     "mocha": "^12.0.3",
-    "pg-promise-strict": "^1.5.2",
-    "qa-control": "^0.12.2"
+    "pg-promise-strict": "^1.5.3",
+    "qa-control": "^0.14.0"
   },
   "engines": {
     "node": ">= 0.8.0"
