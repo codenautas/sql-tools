@@ -38,14 +38,14 @@ SqlTools.olap={};
 
 /** @param {string[]} elements */
 function join1wp(elements){
-    return (elements.length!=1?'(':'') + elements.join(', ') + (elements.length!=1?')':'');
+    return (elements.length!==1?'(':'') + elements.join(', ') + (elements.length!==1?')':'');
 }
 
 function coalesce(){
     var i=0;
     while(i<arguments.length-1 && arguments[i]==null) i++;
     return arguments[i];
-};
+}
 
 SqlTools.olap.cube=function(sql, pivotVar, varsDef){
     var consulta = 'WITH "cube_olap" AS (\n ' + sql + ')\n SELECT ';
@@ -55,7 +55,7 @@ SqlTools.olap.cube=function(sql, pivotVar, varsDef){
         var varDef=varsDef[i];
         if (!SqlTools.places[varDef.place]){
             throw new Error('SqlTools.olap.cube: incorrect place in var definition');
-        } else if (varDef.name == pivotVar){
+        } else if (varDef.name == pivotVar){ // eslint-disable-line eqeqeq -- pivotVar comes from the caller: the comparison keeps its type coercion
             expSelect.push('\'' + coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replace(/'/g, "''") + '\'');
         } else if (SqlTools.places[varDef.place].groupby) {
             expSelect.push(varDef.name+'::text');
@@ -184,15 +184,15 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structureData, 
     var childQueries = [];
     var fields = [];
     var values = [];
-    for(var key in data){
+    for(const key in data){
         var childStructuredData = structureData.childTables.find(function(table){
-            return table.tableName==key
+            return table.tableName==key // eslint-disable-line eqeqeq -- tableName comes from the caller: the comparison keeps its type coercion
         });
         var inheritedPksForChild={};
         Object.assign(inheritedPksForChild, inheritedPks);
         if(childStructuredData){
             var childrenData = data[key];
-            childrenData.forEach(function(childData){
+            childrenData.forEach(function(childData){ // eslint-disable-line no-loop-func -- the callback runs synchronously inside the iteration
                 structureData.pkFields.forEach(function(pkField) {
                     if (data[pkField.fieldName] != null){
                         inheritedPksForChild[pkField.fieldName] = data[pkField.fieldName]
@@ -230,13 +230,13 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structureData, 
         where_expr.push(SqlTools.quoteIdent(structureData.tableName) + '.' + SqlTools.quoteIdent(pkFields[i]) + '=' + SqlTools.quoteLiteral(pkValues[i]));
     }
     var doUpdate = ()=>`do update set ( ${SqlTools.quoteIdentArray(fieldsWithoutPk).join(',')} ) = 
-    ${fieldsWithoutPk.length == 1?'row':''} ( ${SqlTools.quoteLiteralArray(valuesWithoutPk).join(',')} )
+    ${fieldsWithoutPk.length === 1?'row':''} ( ${SqlTools.quoteLiteralArray(valuesWithoutPk).join(',')} )
         where ${where_expr.join(' and ')}`
     var query = `
         insert into ${SqlTools.quoteIdent(structureData.tableName)}  ( ${fields.join(',')} )
             values ( ${SqlTools.quoteLiteralArray(values).join(',')} )
             on conflict ( ${SqlTools.quoteIdentArray(pkFields).join(',')} )
-            ${(fieldsWithoutPk.length == 0)?' do nothing':doUpdate()} ;`
+            ${(fieldsWithoutPk.length === 0)?' do nothing':doUpdate()} ;`
     childQueries.unshift(query);
     return childQueries;
 }

@@ -158,7 +158,7 @@ describe('sql-tools', function(){
     after(function(){
         client.done();
         setTimeout(function(){
-            process.exit();
+            process.exit(); // eslint-disable-line no-process-exit -- forces the end of the process after closing the client
         },1000);
     });
     describe('sqlRead', function(){
@@ -358,18 +358,18 @@ describe('sql-tools', function(){
             expect(result.row.genre).to.eql('rock');
             
             // la cancion 2 fue borrada
-            var result = await client.query("select * from songs where album_id=$1",[album_id]).execute();
+            result = await client.query("select * from songs where album_id=$1",[album_id]).execute();
             expect(result.rowCount).to.eql(2); // quedan 4 canciones
             
             // cancion que era 3 ahroa es 2
-            var result = await client.query("select * from songs where album_id=$1 and song_num=$2",[album_id,2]).fetchOneRowIfExists();
+            result = await client.query("select * from songs where album_id=$1 and song_num=$2",[album_id,2]).fetchOneRowIfExists();
             expect(result.rowCount).to.eql(1); 
             expect(result.row.song_name).to.eql('Ocho cuarenta');
             expect(result.row.length).to.eql(null); // la canción que era 3 no tenía duración
             expect(result.row.genre).to.eql(null); // la canción que era 3 no tenía género
 
             // cancion 3 ya no existe
-            var result = await client.query("select * from songs where album_id=$1 and song_num=$2",[album_id,3]).fetchOneRowIfExists();
+            result = await client.query("select * from songs where album_id=$1 and song_num=$2",[album_id,3]).fetchOneRowIfExists();
             expect(result.rowCount).to.eql(0);
         });
     });

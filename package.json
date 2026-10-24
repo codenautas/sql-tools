@@ -16,15 +16,15 @@
   ],
   "main": "bin/sql-tools.js",
   "dependencies": {
-    "type-store": "^0.6.4"
+    "type-store": "^0.6.5"
   },
   "devDependencies": {
     "expect.js": "^0.3.1",
     "istanbul": "^0.4.5",
-    "mini-tools": "^1.13.12",
+    "mini-tools": "^1.13.14",
     "mocha": "^12.0.3",
-    "pg-promise-strict": "^1.5.3",
-    "qa-control": "^0.14.0"
+    "pg-promise-strict": "^1.6.0",
+    "qa-control": "^0.14.2"
   },
   "engines": {
     "node": ">= 0.8.0"
@@ -43,7 +43,9 @@
     "run-in": "server",
     "type": "lib",
     "coverage": 90,
-    "gha": "all",
+    "gha": {
+      "postgres": "lts"
+    },
     "fileNameMainDoc": "README.md",
     "silenced": [
       "invalid_files_section_in_package_json",
