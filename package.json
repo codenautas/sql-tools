@@ -19,8 +19,9 @@
     "type-store": "^0.6.5"
   },
   "devDependencies": {
+    "best-globals": "^2.2.3",
+    "c8": "^12.0.0",
     "expect.js": "^0.3.1",
-    "istanbul": "^0.4.5",
     "mini-tools": "^1.13.14",
     "mocha": "^12.0.3",
     "pg-promise-strict": "^1.6.0",
@@ -31,12 +32,11 @@
   },
   "scripts": {
     "test": "mocha --reporter spec --bail --check-leaks --globals json4allRegisteredTypes test/",
-    "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks --globals json4allRegisteredTypes test/",
-    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks --globals json4allRegisteredTypes test/",
-    "start": "node example/server.js"
+    "test-ci": "c8 --reporter=lcov mocha --reporter spec --check-leaks --globals json4allRegisteredTypes test/",
+    "test-cov": "c8 mocha --reporter dot --check-leaks --globals json4allRegisteredTypes test/"
   },
   "files": [
-    "lib/sql-tools.js",
+    "bin/sql-tools.js",
     "index.d.ts"
   ],
   "qa-control": {
@@ -47,9 +47,6 @@
       "postgres": "lts"
     },
     "fileNameMainDoc": "README.md",
-    "silenced": [
-      "invalid_files_section_in_package_json",
-      "eslint_warnings_in_file_1"
-    ]
+    "sonar": true
   }
 }

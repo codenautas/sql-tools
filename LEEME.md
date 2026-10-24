@@ -21,6 +21,7 @@ OLAP y otras herramientas para motores de base de datos SQL que no tienen OLAP
 [![downloads](https://img.shields.io/npm/dm/sql-tools.svg)](https://npmjs.org/package/sql-tools)
 [![build](https://github.com/codenautas/sql-tools/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/codenautas/sql-tools/actions/workflows/build-and-test.yml)
 [![coverage](https://img.shields.io/coveralls/codenautas/sql-tools/master.svg)](https://coveralls.io/r/codenautas/sql-tools)
+[![sonar](https://sonarcloud.io/api/project_badges/measure?project=codenautas_sql-tools&metric=alert_status)](https://sonarcloud.io/summary/overall?id=codenautas_sql-tools)
 [![qa-control](https://github.com/codenautas/sql-tools/actions/workflows/qa-control.yml/badge.svg)](https://github.com/codenautas/sql-tools/actions/workflows/qa-control.yml)
 
 <!--multilang buttons-->
