@@ -56,7 +56,7 @@ SqlTools.olap.cube=function(sql, pivotVar, varsDef){
         if (!SqlTools.places[varDef.place]){
             throw new Error('SqlTools.olap.cube: incorrect place in var definition');
         } else if (varDef.name == pivotVar){ // eslint-disable-line eqeqeq -- pivotVar comes from the caller: the comparison keeps its type coercion
-            expSelect.push('\'' + coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replace(/'/g, "''") + '\'');
+            expSelect.push('\'' + coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replaceAll("'", "''") + '\'');
         } else if (SqlTools.places[varDef.place].groupby) {
             expSelect.push(varDef.name+'::text');
             arrGroup.push(varDef.name);
@@ -85,7 +85,7 @@ SqlTools.olap.orderBy=function(sql, varsDef){
         } else if (!SqlTools.places[varDef.place].aggregate){
             //console.log("Funcion: " + coalesce(varDef.orderFunction, SqlTools.defaults.orderFunction));
             var parteOrderBy = varDef.name + "=\'" + 
-                coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replace(/'/g, "''") + "\'"+
+                coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replaceAll("'", "''") + "\'"+
                 (coalesce(varDef.aggPositionFirst, SqlTools.defaults.aggPositionFirst) ? ' DESC, ' : ', ') +
                 coalesce(varDef.orderFunction, SqlTools.defaults.orderFunction) + '(' + varDef.name + ')';
             expOrderBy.push(parteOrderBy); 
@@ -97,11 +97,11 @@ SqlTools.olap.orderBy=function(sql, varsDef){
 }
 
 SqlTools.quoteIdent = function(dbObjectName){
-    return '"'+dbObjectName.toString().replace(/"/g,'""')+'"';
+    return '"' + dbObjectName.toString().replace('"', '""') + '"';
 }
 
 SqlTools.quoteLiteral = function(dbAnyValue){
-    return dbAnyValue==null?"null":"'"+dbAnyValue.toString().replace(/'/g,"''")+"'";
+    return dbAnyValue == null ? "null" : "'" + dbAnyValue.toString().replace("'", "''") + "'";
 }
 
 SqlTools.quoteIdentArray = function(dbObjectNameArray){
