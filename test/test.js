@@ -1,4 +1,4 @@
-﻿"use strict";
+"use strict";
 
 var expect = require('expect.js');
 var SqlTools = require('../bin/sql-tools.js');
@@ -186,9 +186,9 @@ describe('sql-tools', function(){
         it("reads one song", function(){
             return client.query(SqlTools.structuredData.sqlRead({album_id:1, song_num:1}, struct_songs)).fetchUniqueValue().then(function(result){
                 expect(result.value).to.eql({
-                    song_num:1, 
+                    song_num:1,
                     song_name:"Let's Stick Together",
-                    length: null, 
+                    length: null,
                     genre: 'rock',
                     album_id:1,
                 })
@@ -243,7 +243,7 @@ describe('sql-tools', function(){
                 year:1989,
                 songs:[
                     {song_num:2, song_name:"When Did You Leave Heaven?", "length": "2:15"},
-                    {song_num:3, song_name:"Sally Sue Brown"}, 
+                    {song_num:3, song_name:"Sally Sue Brown"},
                 ]
             }
             var queries = SqlTools.structuredData.sqlWrite(data, struct_albums);
@@ -274,7 +274,7 @@ describe('sql-tools', function(){
                     year:1989,
                     songs:[
                         {song_num:2, song_name:"When Did You Leave Heaven?", "length": "2:15"},
-                        {song_num:3, song_name:"Sally Sue Brown"}, 
+                        {song_num:3, song_name:"Sally Sue Brown"},
                     ]
                 },{
                     id:3,
@@ -298,7 +298,7 @@ describe('sql-tools', function(){
             for(var query of queries){
                 await client.query(query).execute();
             }
-            var result 
+            var result
             result = await client.query("select * from albums where id=$1",[2]).fetchOneRowIfExists();
             expect(result.rowCount).to.eql(0); // album 2 fue borrado
             result = await client.query("select * from albums where id=$1",[3]).fetchOneRowIfExists();
@@ -354,8 +354,8 @@ describe('sql-tools', function(){
             var result = await client.query('select count(*) from departamentos where pais = $$ar$$ and provincia = $$B$$').fetchUniqueValue();
             expect(result.value).to.eql(2);
         });
-        it("Borrado previo a la grabación", async function(){ 
-            const album_id = 4;          
+        it("Borrado previo a la grabación", async function(){
+            const album_id = 4;
             var data={
                 id:album_id,
                 title:'Ram',
@@ -377,14 +377,14 @@ describe('sql-tools', function(){
             expect(result.row.song_name).to.eql('La bolsa');
             expect(result.row.length).to.eql('1:00');
             expect(result.row.genre).to.eql('rock');
-            
+
             // la cancion 2 fue borrada
             result = await client.query("select * from songs where album_id=$1",[album_id]).execute();
             expect(result.rowCount).to.eql(2); // quedan 4 canciones
-            
+
             // cancion que era 3 ahroa es 2
             result = await client.query("select * from songs where album_id=$1 and song_num=$2",[album_id,2]).fetchOneRowIfExists();
-            expect(result.rowCount).to.eql(1); 
+            expect(result.rowCount).to.eql(1);
             expect(result.row.song_name).to.eql('Ocho cuarenta');
             expect(result.row.length).to.eql(null); // la canción que era 3 no tenía duración
             expect(result.row.genre).to.eql(null); // la canción que era 3 no tenía género

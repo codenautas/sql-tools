@@ -1,6 +1,6 @@
 set role to test_user;
-drop schema if exists sd cascade; 
-create schema sd; 
+drop schema if exists sd cascade;
+create schema sd;
 set search_path = sd;
 
 create table artists(
@@ -44,16 +44,16 @@ insert into genres
   values ('rock', 'Rock'),
          ('blues', 'Blues'),
          ('cumbia', 'Cumbia');
-         
+
 insert into record_labels
   values ('sonymusic', 'Sony Music'),
          ('emi', 'EMI'),
          ('wb', 'Warner Bros');
 
 insert into albums
-  values (1, 101, 'Down in the Groove', 1988, 'sonymusic'), (2, 101, 'Tempest', 2012, 'wb'), 
+  values (1, 101, 'Down in the Groove', 1988, 'sonymusic'), (2, 101, 'Tempest', 2012, 'wb'),
   (4, 102, 'Pupurri', 1971, 'sonymusic');
-  
+
 insert into songs
   values (1, 2, 'When Did You Leave Heaven?', null, 'blues'),
          (1, 1, 'Let''s Stick Together', null, 'rock'),

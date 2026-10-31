@@ -61,11 +61,11 @@ SqlTools.olap.cube=function(sql, pivotVar, varsDef){
             expSelect.push(varDef.name+'::text');
             arrGroup.push(varDef.name);
         } else {
-            expSelect.push(varDef.aggExp ? varDef.aggExp : 'sum('+ varDef.name +')'); 
+            expSelect.push(varDef.aggExp ? varDef.aggExp : 'sum('+ varDef.name +')');
         }
     }
-    consulta += varsDef.map(function(varDef){ 
-        return varDef.name+(SqlTools.places[varDef.place].groupby?'::text':''); 
+    consulta += varsDef.map(function(varDef){
+        return varDef.name+(SqlTools.places[varDef.place].groupby?'::text':'');
     }).join(', ');
     consulta += ' FROM "cube_olap"\n UNION SELECT ';
     consulta += expSelect.join(', ')+' FROM "cube_olap"';
@@ -84,11 +84,11 @@ SqlTools.olap.orderBy=function(sql, varsDef){
             throw new Error('SqlTools.olap.orderBy: incorrect place in var definition');
         } else if (!SqlTools.places[varDef.place].aggregate){
             //console.log("Funcion: " + coalesce(varDef.orderFunction, SqlTools.defaults.orderFunction));
-            var parteOrderBy = varDef.name + "=\'" + 
+            var parteOrderBy = varDef.name + "=\'" +
                 coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replaceAll("'", "''") + "\'"+
                 (coalesce(varDef.aggPositionFirst, SqlTools.defaults.aggPositionFirst) ? ' DESC, ' : ', ') +
                 coalesce(varDef.orderFunction, SqlTools.defaults.orderFunction) + '(' + varDef.name + ')';
-            expOrderBy.push(parteOrderBy); 
+            expOrderBy.push(parteOrderBy);
         }
     }
     consulta += expOrderBy.join(',\n  ');
@@ -106,7 +106,7 @@ SqlTools.quoteLiteral = function(dbAnyValue){
 
 SqlTools.quoteIdentArray = function(dbObjectNameArray){
     return dbObjectNameArray.map(function(value){ return SqlTools.quoteIdent(value); })
-    
+
 }
 
 SqlTools.quoteLiteralArray = function(dbAnyValueArray){
@@ -146,7 +146,7 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInf
     var select_string = `to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQueries} `;
     select_string = parentStructure?`coalesce(jsonb_agg(${select_string}${structuredData.pkFields?" order by "+structuredData.pkFields.map(function(fieldDef){ return fieldDef.fieldName; }).join(','):''}),'[]'::jsonb) `:select_string;
     return {
-        text: 
+        text:
             `
             select ${select_string}
               from ${structuredData.tableName} as ${q_alias}
@@ -154,7 +154,7 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInf
             `,
         values: globalInfo.parameterValues
     }
-    
+
 }
 
 SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData, queriesArray, parentPks){
@@ -169,10 +169,10 @@ SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData,
                 return pair.source + ' = ' + SqlTools.quoteLiteral(childPksIndex[pair.source])
             });
             (data[childTable.tableName]||[]).forEach(function(childData){
-                queriesArray = SqlTools.structuredData.sqlsDeletes(childData, childTable, queriesArray, childPksIndex);    
+                queriesArray = SqlTools.structuredData.sqlsDeletes(childData, childTable, queriesArray, childPksIndex);
             });
             queriesArray.push(`
-                delete from ${SqlTools.quoteIdent(childTable.tableName)} 
+                delete from ${SqlTools.quoteIdent(childTable.tableName)}
                 where ${conditionChild.join(' and ')}`
             );
         });
@@ -197,7 +197,7 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structureData, 
                     if (data[pkField.fieldName] != null){
                         inheritedPksForChild[pkField.fieldName] = data[pkField.fieldName]
                     }
-                });                
+                });
                 childQueries=childQueries.concat(SqlTools.structuredData.sqlsUpserts(childData, childStructuredData, data, structureData, inheritedPksForChild))
             })
         }else{
@@ -207,7 +207,7 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structureData, 
     }
     if(structureData.fkFields){
         structureData.fkFields.forEach(function(fkField){
-            fields.push(fkField.source); 
+            fields.push(fkField.source);
             values.push(inheritedPks[fkField.target]);
         });
     }
@@ -229,7 +229,7 @@ SqlTools.structuredData.sqlsUpserts = function sqlsUpserts(data, structureData, 
     for(var i in pkFields){
         where_expr.push(SqlTools.quoteIdent(structureData.tableName) + '.' + SqlTools.quoteIdent(pkFields[i]) + '=' + SqlTools.quoteLiteral(pkValues[i]));
     }
-    var doUpdate = ()=>`do update set ( ${SqlTools.quoteIdentArray(fieldsWithoutPk).join(',')} ) = 
+    var doUpdate = ()=>`do update set ( ${SqlTools.quoteIdentArray(fieldsWithoutPk).join(',')} ) =
     ${fieldsWithoutPk.length === 1?'row':''} ( ${SqlTools.quoteLiteralArray(valuesWithoutPk).join(',')} )
         where ${where_expr.join(' and ')}`
     var query = `
