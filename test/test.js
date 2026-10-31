@@ -81,6 +81,27 @@ describe('sql-tools', function(){
         });
     });
   });
+  describe('quote', function(){
+    it('quoteIdent doubles every double quote', function(){
+        expect(SqlTools.quoteIdent('simple')).to.be('"simple"');
+        expect(SqlTools.quoteIdent('a"b"c"')).to.be('"a""b""c"""');
+        expect(SqlTools.quoteIdent(12)).to.be('"12"');
+    });
+    it('quoteLiteral doubles every single quote', function(){
+        expect(SqlTools.quoteLiteral('simple')).to.be("'simple'");
+        expect(SqlTools.quoteLiteral("a'b'c'")).to.be("'a''b''c'''");
+        expect(SqlTools.quoteLiteral("x' or '1'='1")).to.be("'x'' or ''1''=''1'");
+        expect(SqlTools.quoteLiteral(12)).to.be("'12'");
+    });
+    it('quoteLiteral converts null and undefined to null', function(){
+        expect(SqlTools.quoteLiteral(null)).to.be('null');
+        expect(SqlTools.quoteLiteral(undefined)).to.be('null');
+    });
+    it('quoteIdentArray and quoteLiteralArray quote every element', function(){
+        expect(SqlTools.quoteIdentArray(['a', 'b"c"d'])).to.eql(['"a"', '"b""c""d"']);
+        expect(SqlTools.quoteLiteralArray(['a', "b'c'd", null])).to.eql(["'a'", "'b''c''d'", 'null']);
+    });
+  });
   describe('structuredData', function(){
     if (process.env.GITHUB_ACTIONS) return;
     var connectParams = {

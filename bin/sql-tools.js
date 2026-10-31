@@ -97,11 +97,11 @@ SqlTools.olap.orderBy=function(sql, varsDef){
 }
 
 SqlTools.quoteIdent = function(dbObjectName){
-    return '"' + dbObjectName.toString().replace('"', '""') + '"';
+    return '"' + dbObjectName.toString().replaceAll('"', '""') + '"';
 }
 
 SqlTools.quoteLiteral = function(dbAnyValue){
-    return dbAnyValue == null ? "null" : "'" + dbAnyValue.toString().replace("'", "''") + "'";
+    return dbAnyValue == null ? "null" : "'" + dbAnyValue.toString().replaceAll("'", "''") + "'";
 }
 
 SqlTools.quoteIdentArray = function(dbObjectNameArray){
