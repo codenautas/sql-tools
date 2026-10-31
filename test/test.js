@@ -112,7 +112,6 @@ describe('sql-tools', function(){
         port: 5432
     }
     var client;
-    var poolLog;
     var struct_songs={
         tableName:'songs',
         pkFields:[{fieldName:'album_id'}, {fieldName:'song_num'}],
@@ -131,14 +130,6 @@ describe('sql-tools', function(){
         fkFields:[],
         childTables:[
             changing(struct_albums,{fkFields: [{target:'id', source:'artist_id'}]})
-        ]
-    };
-    var struct_record_labels={
-        tableName:'record_labels',
-        pkFields:[{fieldName:'record_label'}],
-        fkFields:[],
-        childTables:[
-            changing(struct_albums,{fkFields: ['record_label']})
         ]
     };
     var struct_departamentos={
@@ -234,6 +225,13 @@ describe('sql-tools', function(){
                 })
             });
         });
+        it("reads from a table whose name must be quoted", async function(){
+            await client.query('create temp table "Song Notes" (id integer primary key, note text)').execute();
+            await client.query(`insert into "Song Notes" values (1, 'first')`).execute();
+            var struct_song_notes={tableName:'Song Notes', pkFields:[{fieldName:'id'}], childTables:[]};
+            var result = await client.query(SqlTools.structuredData.sqlRead({id:1}, struct_song_notes)).fetchUniqueValue();
+            expect(result.value).to.eql({id:1, note:'first'});
+        });
     });
     describe('sqlWrite', function(){
         it("write an album, delete 1st song, update 2nd, insert 3rd, change album year", function(){
@@ -296,7 +294,7 @@ describe('sql-tools', function(){
             }
             var queries = SqlTools.structuredData.sqlWrite(data, struct_artists);
             for(var query of queries){
-                await client.query(query).execute();
+                await client.query(query).execute(); // eslint-disable-line no-await-in-loop -- the statements run in order
             }
             var result
             result = await client.query("select * from albums where id=$1",[2]).fetchOneRowIfExists();
@@ -327,7 +325,7 @@ describe('sql-tools', function(){
             };
             var queries = SqlTools.structuredData.sqlWrite(data, struct_paises);
             for(var query of queries){
-                await client.query(query).execute();
+                await client.query(query).execute(); // eslint-disable-line no-await-in-loop -- the statements run in order
             }
             const deleteQuery = queries[0]
                 .replace(/[\r\n]+/g, '') //saca saltos de linea
@@ -349,7 +347,7 @@ describe('sql-tools', function(){
             };
             var queries = SqlTools.structuredData.sqlWrite(data, struct_paises);
             for(var query of queries){
-                await client.query(query).execute();
+                await client.query(query).execute(); // eslint-disable-line no-await-in-loop -- the statements run in order
             }
             var result = await client.query('select count(*) from departamentos where pais = $$ar$$ and provincia = $$B$$').fetchUniqueValue();
             expect(result.value).to.eql(2);
@@ -370,7 +368,7 @@ describe('sql-tools', function(){
             }
             var queries = SqlTools.structuredData.sqlWrite(data, struct_albums);
             for(var query of queries){
-                await client.query(query).execute();
+                await client.query(query).execute(); // eslint-disable-line no-await-in-loop -- the statements run in order
             }
             // canción 1 sigue siendo 1
             var result = await client.query("select * from songs where album_id=$1 and song_num=$2",[album_id,1]).fetchOneRowIfExists();

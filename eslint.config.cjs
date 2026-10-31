@@ -1,8 +1,21 @@
 "use strict";
 
+const sonarjs = require("eslint-plugin-sonarjs");
+// eslint-plugin-unicorn is ESM only: require() returns the module namespace and the plugin is its default export
+const unicorn = require("eslint-plugin-unicorn").default;
+
 module.exports = [
     {
         ignores: ["dist/**"]
+    },
+    {
+        // SonarQube rules (the ones silenced in the code)
+        plugins: { sonarjs, unicorn },
+        rules: {
+            "sonarjs/no-nested-conditional": 2,
+            "unicorn/consistent-function-scoping": 2,
+            "no-await-in-loop": 2
+        }
     },
     {
         languageOptions: {

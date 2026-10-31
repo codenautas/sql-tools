@@ -36,12 +36,7 @@ SqlTools.places={
 
 SqlTools.olap={};
 
-/** @param {string[]} elements */
-function join1wp(elements){
-    return (elements.length!==1?'(':'') + elements.join(', ') + (elements.length!==1?')':'');
-}
-
-function coalesce(){
+function coalesce(){ // eslint-disable-line unicorn/consistent-function-scoping
     var i=0;
     while(i<arguments.length-1 && arguments[i]==null) i++;
     return arguments[i];
@@ -51,8 +46,7 @@ SqlTools.olap.cube=function(sql, pivotVar, varsDef){
     var consulta = 'WITH "cube_olap" AS (\n ' + sql + ')\n SELECT ';
     var arrGroup = [];
     var expSelect = [];
-    for (var i=0; i < varsDef.length; i++) {
-        var varDef=varsDef[i];
+    for (var varDef of varsDef) {
         if (!SqlTools.places[varDef.place]){
             throw new Error('SqlTools.olap.cube: incorrect place in var definition');
         } else if (varDef.name == pivotVar){ // eslint-disable-line eqeqeq -- pivotVar comes from the caller: the comparison keeps its type coercion
@@ -78,14 +72,13 @@ SqlTools.olap.cube=function(sql, pivotVar, varsDef){
 SqlTools.olap.orderBy=function(sql, varsDef){
     var expOrderBy = [];
     var consulta = "WITH \"unordered\" AS (\n " + sql + ")\n SELECT * from \"unordered\"\n ORDER BY \n  ";
-    for (var i=0; i < varsDef.length; i++) {
-        var varDef=varsDef[i];
+    for (var varDef of varsDef) {
         if (!SqlTools.places[varDef.place]){
             throw new Error('SqlTools.olap.orderBy: incorrect place in var definition');
         } else if (!SqlTools.places[varDef.place].aggregate){
             //console.log("Funcion: " + coalesce(varDef.orderFunction, SqlTools.defaults.orderFunction));
-            var parteOrderBy = varDef.name + "=\'" +
-                coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replaceAll("'", "''") + "\'"+
+            var parteOrderBy = varDef.name + "='" +
+                coalesce(varDef.aggLabel, SqlTools.defaults.aggLabel).replaceAll("'", "''") + "'"+
                 (coalesce(varDef.aggPositionFirst, SqlTools.defaults.aggPositionFirst) ? ' DESC, ' : ', ') +
                 coalesce(varDef.orderFunction, SqlTools.defaults.orderFunction) + '(' + varDef.name + ')';
             expOrderBy.push(parteOrderBy);
@@ -144,12 +137,12 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInf
         return `|| jsonb_build_object('${childTable.tableName}',(${query.text}))`;
     }).join('');
     var select_string = `to_jsonb(${q_alias}.*) ${skipColumns.join('')} ${subQueries} `;
-    select_string = parentStructure?`coalesce(jsonb_agg(${select_string}${structuredData.pkFields?" order by "+structuredData.pkFields.map(function(fieldDef){ return fieldDef.fieldName; }).join(','):''}),'[]'::jsonb) `:select_string;
+    select_string = parentStructure?`coalesce(jsonb_agg(${select_string}${structuredData.pkFields?" order by "+structuredData.pkFields.map(function(fieldDef){ return fieldDef.fieldName; }).join(','):''}),'[]'::jsonb) `:select_string; // eslint-disable-line sonarjs/no-nested-conditional
     return {
         text:
             `
             select ${select_string}
-              from ${structuredData.tableName} as ${q_alias}
+              from ${q_table} as ${q_alias}
               where ${where_expr}
             `,
         values: globalInfo.parameterValues
@@ -158,7 +151,7 @@ SqlTools.structuredData.sqlRead = function sqlRead(pk, structuredData, globalInf
 }
 
 SqlTools.structuredData.sqlsDeletes = function sqlsDeletes(data, structuredData, queriesArray, parentPks){
-    if(structuredData.childTables && structuredData.childTables.length){
+    if(structuredData.childTables?.length){
         structuredData.childTables.forEach(function(childTable){
             var childPksIndex={};
             Object.assign(childPksIndex, parentPks);
